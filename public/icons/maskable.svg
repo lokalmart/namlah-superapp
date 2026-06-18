@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Namlah maskable icon">
+  <rect width="512" height="512" fill="#1f7a4d"/>
+  <circle cx="256" cy="266" r="138" fill="#fffdf7"/>
+  <circle cx="208" cy="246" r="28" fill="#142018"/>
+  <circle cx="304" cy="246" r="28" fill="#142018"/>
+  <path d="M198 326c39 32 77 32 116 0" fill="none" stroke="#142018" stroke-width="24" stroke-linecap="round"/>
+  <path d="M136 188C99 133 75 104 44 92" fill="none" stroke="#fffdf7" stroke-width="24" stroke-linecap="round"/>
+  <path d="M376 188c37-55 61-84 92-96" fill="none" stroke="#fffdf7" stroke-width="24" stroke-linecap="round"/>
+  <path d="M184 136h144l-30-48h-84z" fill="#f0b848"/>
+</svg>
