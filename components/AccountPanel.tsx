@@ -1,4 +1,4 @@
-import { LogOut, Plus, ShieldCheck, UserRoundCog } from 'lucide-react';
+import { Crown, LogOut, Plus, ShieldCheck, UserRoundCog } from 'lucide-react';
 import { roleConfigs, roleOrder } from '../lib/mockData';
 import { addRole, clearAccount } from '../lib/storage';
 import type { RoleConfig, RoleId, SemutAccount } from '../lib/types';
@@ -48,9 +48,9 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
           </aside>
 
           <div className="account-card">
-            <p className="small-label">Role-ID aktif</p>
-            <h3>{role.label}</h3>
-            <p className="muted">{role.summary}</p>
+          <p className="small-label">Class / Role-ID aktif</p>
+          <h3>{role.label}</h3>
+          <p className="muted">{role.summary}</p>
             <div className="role-grid" style={{ marginTop: 14 }}>
               {roleOrder.map((roleId) => {
                 const config = roleConfigs[roleId];
@@ -64,7 +64,7 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
                     onClick={() => (owned ? selectRole(roleId) : onChange(addRole(account, roleId)))}
                     style={{ ['--role' as string]: config.theme }}
                   >
-                    {owned ? <ShieldCheck size={17} /> : <Plus size={17} />}
+                    {active ? <Crown size={17} /> : owned ? <ShieldCheck size={17} /> : <Plus size={17} />}
                     {owned ? config.label : `Tambah ${config.label}`}
                   </button>
                 );

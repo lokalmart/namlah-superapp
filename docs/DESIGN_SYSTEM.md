@@ -4,6 +4,20 @@
 
 Koloni modern: mobile-first, hangat, kerja lapangan, dan tetap rapi untuk transaksi. Peta konseptual menjadi panggung utama, sementara setiap role punya aksen warna dan prioritas aksi sendiri.
 
+## Branch Game Ant Art
+
+Branch `codex/game-ant-art` mengeksplorasi arah visual yang lebih game-like:
+
+- map menjadi arena tile koloni;
+- pin berubah menjadi node quest/resource;
+- role diperlakukan seperti class karakter;
+- aktivitas menjadi quest card;
+- Gudang Semut menjadi shop inventory;
+- Scan Jejak menjadi portal scan;
+- maskot ratu semut lebih ekspresif dan cocok untuk onboarding.
+
+Varian ini tetap dummy frontend. Tidak ada backend, Odoo, wallet, pembayaran, atau blockchain nyata.
+
 ## Prinsip UI
 
 - Map sebagai first screen setelah login.

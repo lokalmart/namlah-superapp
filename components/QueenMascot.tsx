@@ -6,10 +6,10 @@ type QueenMascotProps = {
 };
 
 const tabCopy: Record<AppTab, string> = {
-  map: 'Sarang berubah mengikuti role aktif.',
-  store: 'Gudang Semut masih dummy untuk showcase.',
-  scan: 'Scan Jejak disiapkan untuk barcode dan Web3 nanti.',
-  account: 'Tambah Role-ID untuk melihat wajah app berubah.',
+  map: 'Mode game aktif: sarang, jalur, dan misi ikut role.',
+  store: 'Gudang Semut tampil seperti shop inventory.',
+  scan: 'Scan Jejak jadi portal rune untuk barcode dan Web3 nanti.',
+  account: 'Tambah Role-ID seperti membuka kelas karakter baru.',
 };
 
 export function QueenMascot({ role, activeTab }: QueenMascotProps) {

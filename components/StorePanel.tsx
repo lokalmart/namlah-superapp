@@ -1,4 +1,4 @@
-import { PackageCheck, ShoppingBag } from 'lucide-react';
+import { Coins, PackageCheck, ShoppingBag, Sparkles } from 'lucide-react';
 import { storeItems } from '../lib/mockData';
 import type { RoleConfig } from '../lib/types';
 
@@ -14,7 +14,7 @@ export function StorePanel({ role }: StorePanelProps) {
           <p className="eyebrow">Gudang Semut</p>
           <h2>Katalog dummy untuk role {role.label}.</h2>
         </div>
-        <span className="role-badge"><ShoppingBag size={17} /> Showcase</span>
+        <span className="role-badge"><ShoppingBag size={17} /> Shop Inventory</span>
       </header>
       <div className="screen-scroll">
         <div className="store-grid">
@@ -25,7 +25,8 @@ export function StorePanel({ role }: StorePanelProps) {
                 <h3 style={{ marginTop: 12 }}>{item.title}</h3>
                 <p className="muted">{item.category} / {item.stock}</p>
               </div>
-              <div className="price">{item.price}</div>
+              <div className="price"><Coins size={18} /> {item.price}</div>
+              <span className="rarity-chip"><Sparkles size={13} /> Koloni item</span>
             </article>
           ))}
         </div>

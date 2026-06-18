@@ -1,4 +1,4 @@
-import { BadgeCheck, ScanBarcode, Shield } from 'lucide-react';
+import { BadgeCheck, ScanBarcode, Shield, Sparkles } from 'lucide-react';
 import type { RoleConfig } from '../lib/types';
 
 type ScanPanelProps = {
@@ -11,12 +11,13 @@ export function ScanPanel({ role }: ScanPanelProps) {
       <header className="screen-header">
         <div>
           <p className="eyebrow">Scan Jejak</p>
-          <h2>Barcode trail untuk identitas barang dan aktivitas.</h2>
+          <h2>Portal scan untuk jejak barang dan aktivitas.</h2>
         </div>
         <span className="role-badge"><ScanBarcode size={17} /> {role.label}</span>
       </header>
       <div className="scan-layout">
         <div className="scan-window" aria-label="Dummy scan frame">
+          <div className="portal-ring" />
           <div className="scan-frame" />
         </div>
         <aside className="scan-panel">
@@ -25,12 +26,12 @@ export function ScanPanel({ role }: ScanPanelProps) {
             <p className="muted">NMLH-TRACE-2026-0007</p>
           </div>
           <div className="account-card">
-            <h3><Shield size={18} /> Status</h3>
+            <h3><Shield size={18} /> Status quest</h3>
             <p className="muted">Siap menjadi pintu barcode, audit, dan Web3 proof setelah backend disiapkan.</p>
           </div>
           <button className="primary-action" type="button">
-            <ScanBarcode size={18} />
-            Simulasikan Scan
+            <Sparkles size={18} />
+            Aktifkan Portal Scan
           </button>
         </aside>
       </div>

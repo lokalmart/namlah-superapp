@@ -749,3 +749,542 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+
+/* Game-ant art branch overrides */
+:root {
+  --game-dark: #101713;
+  --game-soil: #35261c;
+  --game-soil-2: #5b4028;
+  --game-leaf: #6eca74;
+  --game-cream: #fff3c9;
+  --game-gold: #f4bd42;
+  --game-outline: #102017;
+}
+
+body {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(244, 189, 66, 0.15), transparent 28%),
+    radial-gradient(circle at 78% 30%, rgba(110, 202, 116, 0.13), transparent 30%),
+    var(--game-dark);
+}
+
+.auth-screen {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(244, 189, 66, 0.28), transparent 28%),
+    radial-gradient(circle at 82% 80%, rgba(31, 122, 77, 0.22), transparent 36%),
+    linear-gradient(135deg, #231b17 0%, #384626 46%, #17241d 100%);
+}
+
+.auth-art {
+  color: var(--game-cream);
+}
+
+.auth-map {
+  border: 3px solid rgba(255, 243, 201, 0.36);
+  background:
+    radial-gradient(circle at 50% 52%, rgba(244, 189, 66, 0.34), transparent 12%),
+    linear-gradient(135deg, transparent 0 22%, rgba(255, 243, 201, 0.13) 22% 24%, transparent 24% 66%, rgba(110, 202, 116, 0.18) 66% 68%, transparent 68%),
+    repeating-linear-gradient(60deg, rgba(255, 243, 201, 0.09) 0 2px, transparent 2px 34px),
+    radial-gradient(circle at 24% 72%, rgba(255, 138, 47, 0.4), transparent 14%),
+    radial-gradient(circle at 72% 28%, rgba(68, 162, 255, 0.22), transparent 18%),
+    #263523;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+}
+
+.auth-map::before,
+.auth-map::after {
+  content: "";
+  position: absolute;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 243, 201, 0.34);
+}
+
+.auth-map::before {
+  width: 118px;
+  height: 84px;
+  left: 12%;
+  bottom: 16%;
+  background: rgba(244, 189, 66, 0.16);
+  box-shadow: 210px -160px 0 rgba(110, 202, 116, 0.11), 330px -20px 0 rgba(68, 162, 255, 0.11);
+}
+
+.auth-map::after {
+  width: 78px;
+  height: 78px;
+  right: 18%;
+  top: 18%;
+  background: rgba(255, 253, 247, 0.13);
+  transform: rotate(45deg);
+}
+
+.auth-copy h1,
+.auth-copy .muted {
+  color: var(--game-cream);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.auth-panel {
+  background: rgba(255, 243, 201, 0.88);
+}
+
+.panel,
+.pin-panel,
+.screen-panel,
+.account-card,
+.store-item,
+.scan-window,
+.activity-card,
+.map-title,
+.map-meter,
+.bottom-nav,
+.queen,
+.queen-bubble {
+  border: 2px solid rgba(16, 32, 23, 0.2);
+  box-shadow: 0 10px 0 rgba(16, 32, 23, 0.12), 0 24px 56px rgba(0, 0, 0, 0.22);
+}
+
+.game-map {
+  background:
+    radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--role) 26%, transparent), transparent 16%),
+    radial-gradient(circle at 26% 70%, rgba(244, 189, 66, 0.22), transparent 17%),
+    radial-gradient(circle at 78% 22%, rgba(68, 162, 255, 0.16), transparent 18%),
+    linear-gradient(145deg, #102018 0%, #25351f 44%, #3d2c1d 100%);
+}
+
+.game-map .map-grid {
+  opacity: 0.42;
+  background-image:
+    linear-gradient(30deg, rgba(255, 243, 201, 0.09) 12%, transparent 12.5%, transparent 87%, rgba(255, 243, 201, 0.09) 87.5%, rgba(255, 243, 201, 0.09)),
+    linear-gradient(150deg, rgba(255, 243, 201, 0.09) 12%, transparent 12.5%, transparent 87%, rgba(255, 243, 201, 0.09) 87.5%, rgba(255, 243, 201, 0.09)),
+    linear-gradient(30deg, rgba(255, 243, 201, 0.09) 12%, transparent 12.5%, transparent 87%, rgba(255, 243, 201, 0.09) 87.5%, rgba(255, 243, 201, 0.09)),
+    linear-gradient(150deg, rgba(255, 243, 201, 0.09) 12%, transparent 12.5%, transparent 87%, rgba(255, 243, 201, 0.09) 87.5%, rgba(255, 243, 201, 0.09));
+  background-position: 0 0, 0 0, 28px 48px, 28px 48px;
+  background-size: 56px 96px;
+  transform: rotate(-8deg) scale(1.12);
+}
+
+.game-map .map-path {
+  background:
+    linear-gradient(118deg, transparent 0 18%, rgba(255, 243, 201, 0.24) 18% 20%, transparent 20% 84%),
+    linear-gradient(37deg, transparent 0 42%, color-mix(in srgb, var(--role) 48%, transparent) 42% 44%, transparent 44% 100%),
+    radial-gradient(circle at 49% 48%, rgba(255, 243, 201, 0.28), transparent 9%),
+    repeating-radial-gradient(circle at 49% 48%, transparent 0 26px, rgba(255, 243, 201, 0.08) 27px 30px);
+}
+
+.game-board {
+  position: absolute;
+  inset: 16% 8% 14%;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(24px, 1fr));
+  grid-auto-rows: minmax(32px, 1fr);
+  gap: 8px;
+  opacity: 0.5;
+  transform: perspective(860px) rotateX(58deg) rotateZ(-8deg);
+  transform-origin: center;
+}
+
+.game-tile {
+  border: 2px solid rgba(255, 243, 201, 0.17);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(255, 243, 201, 0.08), rgba(16, 32, 23, 0.08));
+  box-shadow: inset 0 -10px 0 rgba(0, 0, 0, 0.11);
+}
+
+.game-tile.raised {
+  background: linear-gradient(145deg, rgba(110, 202, 116, 0.22), rgba(255, 243, 201, 0.1));
+}
+
+.game-tile.nest-tile {
+  background: linear-gradient(145deg, rgba(244, 189, 66, 0.25), rgba(91, 64, 40, 0.18));
+}
+
+.resource-node {
+  position: absolute;
+  z-index: 1;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  color: var(--game-outline);
+  border: 3px solid rgba(255, 243, 201, 0.66);
+  border-radius: 8px;
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.18), 0 0 28px rgba(244, 189, 66, 0.22);
+  animation: bob 3.8s ease-in-out infinite;
+}
+
+.leaf-node {
+  left: 17%;
+  top: 48%;
+  background: var(--game-leaf);
+}
+
+.amber-node {
+  right: 15%;
+  top: 18%;
+  background: var(--game-gold);
+  animation-delay: -1.4s;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.game-hud-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.map-title,
+.map-meter {
+  background: rgba(255, 243, 201, 0.92);
+}
+
+.map-title h1 {
+  color: #172014;
+}
+
+.role-badge {
+  border: 2px solid rgba(255, 243, 201, 0.42);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
+}
+
+.role-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.role-action-row span {
+  padding: 6px 8px;
+  color: color-mix(in srgb, var(--role) 80%, black);
+  background: color-mix(in srgb, var(--role) 14%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 28%, white);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.map-meter.compact strong {
+  font-size: 18px;
+}
+
+.game-map .pin {
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  color: #fffdf7;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.34), transparent 22%),
+    var(--role);
+  border: 3px solid var(--game-cream);
+  border-radius: 8px;
+  box-shadow: 0 8px 0 color-mix(in srgb, var(--role) 58%, black), 0 18px 36px rgba(0, 0, 0, 0.28);
+  transform: none;
+}
+
+.game-map .pin svg {
+  transform: none;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.25));
+}
+
+.game-map .pin::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 32px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  transform: translateX(-50%);
+}
+
+.game-map .pin::after {
+  left: 44px;
+  top: -8px;
+  min-width: 132px;
+  max-width: 166px;
+  color: var(--game-outline);
+  background: rgba(255, 243, 201, 0.94);
+  border: 2px solid rgba(16, 32, 23, 0.22);
+  transform: none;
+  box-shadow: 0 6px 0 rgba(16, 32, 23, 0.12);
+}
+
+.pin-count {
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  min-width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: var(--game-outline);
+  background: var(--game-gold);
+  border: 2px solid var(--game-cream);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.ant-squad {
+  position: absolute;
+  z-index: 3;
+  left: 28%;
+  top: 58%;
+  width: 42%;
+  height: 24%;
+  pointer-events: none;
+}
+
+.ant-unit {
+  --delay: 0s;
+  position: absolute;
+  width: 24px;
+  height: 15px;
+  border-radius: 999px;
+  background: #211711;
+  box-shadow: 11px 0 0 #211711, 22px 0 0 #211711, 4px -7px 0 -4px var(--game-cream), 16px -7px 0 -4px var(--game-cream);
+  animation: march 4.5s linear infinite;
+  animation-delay: var(--delay);
+}
+
+.ant-unit::before,
+.ant-unit::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  width: 34px;
+  height: 2px;
+  background: #211711;
+}
+
+.ant-unit::before {
+  top: -4px;
+  transform: rotate(-24deg);
+}
+
+.ant-unit::after {
+  bottom: -4px;
+  transform: rotate(24deg);
+}
+
+@keyframes march {
+  0% {
+    transform: translate(0, 0) rotate(-8deg);
+    opacity: 0;
+  }
+  12%,
+  86% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(120px, -54px) rotate(-8deg);
+    opacity: 0;
+  }
+}
+
+.activity-card {
+  position: relative;
+  padding-left: 44px;
+  background: rgba(255, 243, 201, 0.94);
+}
+
+.quest-icon {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: var(--role);
+  border-radius: 8px;
+}
+
+.queen {
+  background: linear-gradient(180deg, rgba(255, 243, 201, 0.95), rgba(255, 253, 247, 0.9));
+  animation: queen-idle 4s ease-in-out infinite;
+}
+
+@keyframes queen-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.queen-bubble {
+  background: rgba(255, 243, 201, 0.96);
+  font-weight: 800;
+}
+
+.bottom-nav {
+  background: rgba(255, 243, 201, 0.94);
+}
+
+.bottom-tab.active {
+  color: white;
+  background: var(--role);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18);
+}
+
+.screen-panel {
+  background:
+    radial-gradient(circle at 20% 18%, color-mix(in srgb, var(--role) 16%, transparent), transparent 26%),
+    rgba(255, 243, 201, 0.92);
+}
+
+.store-item {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(160deg, rgba(255, 243, 201, 0.96), rgba(255, 253, 247, 0.9)),
+    var(--surface);
+}
+
+.store-item::after {
+  content: "";
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--role) 14%, transparent);
+}
+
+.store-icon {
+  border: 2px solid rgba(255, 243, 201, 0.75);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--role) 58%, black);
+}
+
+.price {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--game-outline);
+}
+
+.rarity-chip {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  color: color-mix(in srgb, var(--role) 76%, black);
+  background: color-mix(in srgb, var(--role) 12%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 30%, white);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.scan-window {
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--role) 32%, transparent), transparent 22%),
+    repeating-linear-gradient(45deg, rgba(255, 243, 201, 0.08) 0 8px, transparent 8px 22px),
+    #121915;
+}
+
+.portal-ring {
+  position: absolute;
+  width: min(360px, 76%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 7px solid color-mix(in srgb, var(--role) 72%, white);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--role) 48%, transparent), inset 0 0 24px rgba(255, 243, 201, 0.18);
+  animation: portal-spin 9s linear infinite;
+}
+
+.portal-ring::before,
+.portal-ring::after {
+  content: "";
+  position: absolute;
+  inset: 28px;
+  border: 2px dashed rgba(255, 243, 201, 0.82);
+  border-radius: 50%;
+}
+
+.portal-ring::after {
+  inset: 64px;
+  border-style: solid;
+  opacity: 0.5;
+}
+
+@keyframes portal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.scan-frame {
+  z-index: 1;
+  border-color: var(--game-cream);
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.1), 0 0 24px color-mix(in srgb, var(--role) 44%, transparent);
+}
+
+.role-chip {
+  background: rgba(255, 253, 247, 0.86);
+}
+
+.role-chip.active {
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 900px) {
+  .game-board {
+    inset: 24% -10% 18%;
+    opacity: 0.44;
+  }
+
+  .game-hud-stack {
+    display: none;
+  }
+
+  .role-action-row {
+    display: none;
+  }
+
+  .ant-squad {
+    left: 22%;
+    top: 56%;
+    width: 50%;
+  }
+}
+
+@media (max-width: 520px) {
+  .game-map .pin {
+    width: 48px;
+    height: 48px;
+    margin: -24px 0 0 -24px;
+  }
+
+  .game-map .pin::after {
+    left: 32px;
+    top: -10px;
+    min-width: 94px;
+    max-width: 112px;
+    font-size: 10px;
+  }
+
+  .resource-node {
+    width: 42px;
+    height: 42px;
+  }
+
+  .ant-unit {
+    transform: scale(0.82);
+  }
+}
