@@ -1,7 +1,7 @@
-import { Crown, LogOut, Plus, ShieldCheck, UserRoundCog } from 'lucide-react';
+import { Crown, Gamepad2, LogOut, Plus, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
 import { roleConfigs, roleOrder } from '../lib/mockData';
-import { addRole, clearAccount } from '../lib/storage';
-import type { RoleConfig, RoleId, SemutAccount } from '../lib/types';
+import { addRole, clearAccount, setExperienceTheme } from '../lib/storage';
+import type { ExperienceTheme, RoleConfig, RoleId, SemutAccount } from '../lib/types';
 
 type AccountPanelProps = {
   account: SemutAccount;
@@ -14,6 +14,10 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
   function selectRole(roleId: RoleId) {
     if (!account.roles.includes(roleId)) return;
     onChange({ ...account, activeRoleId: roleId });
+  }
+
+  function selectTheme(experienceTheme: ExperienceTheme) {
+    onChange(setExperienceTheme(account, experienceTheme));
   }
 
   function resetDemo() {
@@ -37,6 +41,16 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
             <p className="small-label">Semut-ID</p>
             <h3>{account.displayName}</h3>
             <p className="muted">{account.semutId}</p>
+            <div className="theme-switch" aria-label="Pilih experience">
+              <button className={account.experienceTheme === 'modern' ? 'theme-option active' : 'theme-option'} type="button" onClick={() => selectTheme('modern')}>
+                <Sparkles size={16} />
+                Modern
+              </button>
+              <button className={account.experienceTheme === 'game' ? 'theme-option active' : 'theme-option'} type="button" onClick={() => selectTheme('game')}>
+                <Gamepad2 size={16} />
+                Game
+              </button>
+            </div>
             <button className="icon-action" type="button" onClick={onLogout}>
               <LogOut size={17} />
               Kunci App

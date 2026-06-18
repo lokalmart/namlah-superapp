@@ -1,24 +1,41 @@
 import { Coins, PackageCheck, ShoppingBag, Sparkles } from 'lucide-react';
 import { storeItems } from '../lib/mockData';
-import type { RoleConfig } from '../lib/types';
+import type { RoleConfig, SemutAccount } from '../lib/types';
 
 type StorePanelProps = {
+  account: SemutAccount;
   role: RoleConfig;
 };
 
-export function StorePanel({ role }: StorePanelProps) {
+export function StorePanel({ account, role }: StorePanelProps) {
+  const visibleItems = account.activeRoleId === 'kasir'
+    ? storeItems.slice(0, 4)
+    : account.activeRoleId === 'kurir'
+      ? storeItems.filter((item) => item.category === 'Layanan' || item.category === 'Sembako' || item.category === 'Segar')
+      : account.activeRoleId === 'koperasi'
+        ? storeItems.filter((item) => item.category === 'Koperasi' || item.category === 'Sembako' || item.category === 'UMKM')
+        : storeItems;
+
   return (
     <section className="screen-panel">
       <header className="screen-header">
         <div>
           <p className="eyebrow">Gudang Semut</p>
-          <h2>Katalog dummy untuk role {role.label}.</h2>
+          <h2>{role.storeMode}</h2>
         </div>
         <span className="role-badge"><ShoppingBag size={17} /> Shop Inventory</span>
       </header>
       <div className="screen-scroll">
+        <div className="role-menu-row panel-row">
+          {role.menuItems.slice(0, 3).map((item) => (
+            <button type="button" className="role-menu-card" key={item.label}>
+              <strong>{item.label}</strong>
+              <span>{item.description}</span>
+            </button>
+          ))}
+        </div>
         <div className="store-grid">
-          {storeItems.map((item) => (
+          {visibleItems.map((item) => (
             <article className="store-item" key={item.id}>
               <div>
                 <div className="store-icon"><PackageCheck size={24} /></div>

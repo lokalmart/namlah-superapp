@@ -1,5 +1,5 @@
 import { roleConfigs } from './mockData';
-import type { RoleId, SemutAccount } from './types';
+import type { ExperienceTheme, RoleId, SemutAccount } from './types';
 
 const ACCOUNT_KEY = 'namlah_superapp_semut_account';
 
@@ -27,6 +27,7 @@ export function loadAccount(): SemutAccount | null {
       ...parsed,
       roles: parsed.roles?.length ? parsed.roles : ['member'],
       activeRoleId: roleConfigs[parsed.activeRoleId] ? parsed.activeRoleId : 'member',
+      experienceTheme: parsed.experienceTheme || 'game',
     };
   } catch {
     return null;
@@ -44,4 +45,8 @@ export function clearAccount() {
 export function addRole(account: SemutAccount, roleId: RoleId): SemutAccount {
   if (account.roles.includes(roleId)) return { ...account, activeRoleId: roleId };
   return { ...account, roles: [...account.roles, roleId], activeRoleId: roleId };
+}
+
+export function setExperienceTheme(account: SemutAccount, experienceTheme: ExperienceTheme): SemutAccount {
+  return { ...account, experienceTheme };
 }

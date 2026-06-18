@@ -38,10 +38,10 @@ export default function Page() {
   }
 
   return (
-    <main className="superapp" style={{ ['--role' as string]: activeRole.theme }}>
+    <main className={`superapp theme-${account.experienceTheme}`} style={{ ['--role' as string]: activeRole.theme }}>
       {activeTab === 'map' && <ConceptMap account={account} role={activeRole} />}
-      {activeTab === 'store' && <StorePanel role={activeRole} />}
-      {activeTab === 'scan' && <ScanPanel role={activeRole} />}
+      {activeTab === 'store' && <StorePanel account={account} role={activeRole} />}
+      {activeTab === 'scan' && <ScanPanel account={account} role={activeRole} />}
       {activeTab === 'account' && <AccountPanel account={account} role={activeRole} onChange={setAccount} onLogout={() => setAccount(null)} />}
 
       <QueenMascot role={activeRole} activeTab={activeTab} />

@@ -2,12 +2,15 @@ export type RoleId = 'member' | 'surveyor' | 'kurir' | 'kasir' | 'umkm' | 'admin
 
 export type AppTab = 'map' | 'store' | 'scan' | 'account';
 
+export type ExperienceTheme = 'modern' | 'game';
+
 export type SemutAccount = {
   semutId: string;
   displayName: string;
   pinHashDemo: string;
   roles: RoleId[];
   activeRoleId: RoleId;
+  experienceTheme: ExperienceTheme;
 };
 
 export type RoleConfig = {
@@ -18,6 +21,13 @@ export type RoleConfig = {
   headline: string;
   summary: string;
   featuredActions: string[];
+  dashboardLabel: string;
+  primaryModule: string;
+  quickStats: Array<{ label: string; value: string }>;
+  homeCards: Array<{ title: string; value: string; description: string }>;
+  menuItems: Array<{ label: string; description: string }>;
+  storeMode: string;
+  scanMode: string;
 };
 
 export type NestPin = {

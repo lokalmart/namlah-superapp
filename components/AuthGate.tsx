@@ -27,6 +27,7 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
       pinHashDemo: createPinHashDemo(pin),
       roles: ['member'],
       activeRoleId: 'member',
+      experienceTheme: 'game',
     };
     saveAccount(account);
     onAuthenticated(account);

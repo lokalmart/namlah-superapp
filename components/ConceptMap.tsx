@@ -1,4 +1,4 @@
-import { Boxes, CircleDollarSign, Gem, Home, MapPin, Route, Shield, Sparkles, Store } from 'lucide-react';
+import { Boxes, CircleDollarSign, Gem, Home, LayoutGrid, MapPin, Route, Shield, Sparkles, Store, Wand2 } from 'lucide-react';
 import { activities, nestPins } from '../lib/mockData';
 import type { NestPin, RoleConfig, SemutAccount } from '../lib/types';
 
@@ -24,7 +24,7 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
   const squadCount = Math.max(3, Math.min(9, Math.ceil(activityCount / 9)));
 
   return (
-    <section className="map-stage game-map" aria-label="Beranda peta sarang versi game">
+    <section className={account.experienceTheme === 'game' ? 'map-stage game-map' : 'map-stage modern-map'} aria-label="Beranda peta sarang">
       <div className="map-grid" />
       <div className="map-path" />
       <div className="game-board" aria-hidden="true">
@@ -40,11 +40,6 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
           <span className="role-badge">{role.label} / {role.homeMode}</span>
           <h1>{role.headline}</h1>
           <p>{account.displayName} / {account.semutId}</p>
-          <div className="role-action-row">
-            {role.featuredActions.map((action) => (
-              <span key={action}>{action}</span>
-            ))}
-          </div>
         </div>
         <div className="game-hud-stack">
           <div className="map-meter">
@@ -105,6 +100,44 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
           </article>
         )}
       </div>
+
+      <section className="role-workspace" aria-label={`Menu ${role.label}`}>
+        <div className="role-workspace-head">
+          <span className="role-badge">
+            <LayoutGrid size={16} />
+            {role.dashboardLabel}
+          </span>
+          <span className="theme-chip">
+            {account.experienceTheme === 'game' ? <Sparkles size={14} /> : <Wand2 size={14} />}
+            {account.experienceTheme}
+          </span>
+        </div>
+        <div className="quick-stat-row">
+          {role.quickStats.map((stat) => (
+            <div className="quick-stat" key={stat.label}>
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="role-menu-row">
+          {role.menuItems.slice(0, 4).map((item) => (
+            <button type="button" className="role-menu-card" key={item.label}>
+              <strong>{item.label}</strong>
+              <span>{item.description}</span>
+            </button>
+          ))}
+        </div>
+        <div className="home-card-row">
+          {role.homeCards.map((card) => (
+            <article className="home-mini-card" key={card.title}>
+              <strong>{card.value}</strong>
+              <span>{card.title}</span>
+              <p>{card.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
     </section>
   );
 }
