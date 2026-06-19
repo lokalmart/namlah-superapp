@@ -4,7 +4,7 @@ import { KeyRound, Sparkles, UserRoundPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { PinPad } from './PinPad';
 import { roleConfigs } from '../lib/mockData';
-import { createPinHashDemo, loadAccount, makeSemutId, saveAccount, verifyPinDemo } from '../lib/storage';
+import { createPinHashDemo, loadAccount, makeRoleAssignment, makeSemutId, saveAccount, verifyPinDemo } from '../lib/storage';
 import type { SemutAccount } from '../lib/types';
 
 type AuthGateProps = {
@@ -25,7 +25,7 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
       semutId: semutId.trim() || makeSemutId(displayName),
       displayName: displayName.trim(),
       pinHashDemo: createPinHashDemo(pin),
-      roles: ['member'],
+      roleAssignments: [makeRoleAssignment('member', createPinHashDemo(pin))],
       activeRoleId: 'member',
       experienceTheme: 'game',
     };

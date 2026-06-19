@@ -13,6 +13,9 @@ Setiap akun bisa memiliki beberapa Role-ID. Mengganti role mengubah:
 - pin aktivitas prioritas;
 - aksi utama;
 - tampilan Gudang/Scan/Akun.
+- menu bawah yang tersedia.
+
+Setiap Role-ID memiliki PIN 4 digit sendiri. PIN Semut-ID membuka akun utama, lalu PIN role membuka peran yang ingin dipakai.
 
 ## Role Awal
 
@@ -21,5 +24,5 @@ Setiap akun bisa memiliki beberapa Role-ID. Mengganti role mengubah:
 - Kurir
 - Kasir
 - UMKM
-- Admin Koloni
+- Ratu Semut (`admin`)
 - Koperasi

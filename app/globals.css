@@ -1661,6 +1661,408 @@ body {
   }
 }
 
+/* Ratu Semut dashboard */
+.mission-control {
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(236, 242, 237, 0.94)),
+    #fffdf7;
+}
+
+.mission-header {
+  align-items: center;
+}
+
+.mission-scroll {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.mission-toolbar,
+.mission-metrics,
+.mission-lower-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.mission-toolbar {
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+  align-items: stretch;
+}
+
+.mission-sync-card,
+.mission-actions,
+.mission-metric,
+.flow-tabs,
+.kanban-column,
+.mission-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 247, 0.94);
+  box-shadow: 0 12px 28px rgba(20, 32, 24, 0.1);
+}
+
+.mission-sync-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 12px;
+}
+
+.mission-sync-card svg {
+  color: var(--role);
+}
+
+.mission-sync-card strong,
+.mission-sync-card span,
+.mission-actions span {
+  display: block;
+}
+
+.mission-sync-card strong {
+  font-size: 15px;
+}
+
+.mission-sync-card span,
+.mission-actions span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.mission-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 72px;
+  padding: 12px;
+}
+
+.mission-actions button,
+.flow-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: white;
+  background: var(--role);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.mission-actions button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.mission-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mission-metric {
+  min-height: 98px;
+  padding: 12px;
+}
+
+.mission-metric span,
+.mission-card-head span,
+.template-row span,
+.kanban-column p,
+.mission-task span,
+.mission-task small,
+.empty-stage {
+  color: var(--muted);
+}
+
+.mission-metric span,
+.mission-card-head span,
+.kanban-column header span {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.mission-metric strong {
+  display: block;
+  margin: 5px 0 6px;
+  color: var(--role);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.mission-metric p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.flow-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  overflow-x: auto;
+}
+
+.flow-tabs button {
+  flex: 0 0 auto;
+  color: var(--role);
+  background: color-mix(in srgb, var(--role) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 24%, white);
+}
+
+.flow-tabs button.active {
+  color: white;
+  background: var(--role);
+}
+
+.kanban-board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(236px, 1fr);
+  gap: 10px;
+  min-height: 338px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scroll-snap-type: x proximity;
+}
+
+.kanban-column {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-height: 320px;
+  padding: 10px;
+  scroll-snap-align: start;
+}
+
+.kanban-column.folded {
+  background: color-mix(in srgb, var(--role) 7%, white);
+}
+
+.kanban-column header,
+.mission-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kanban-column header strong,
+.mission-card-head strong {
+  color: var(--role);
+}
+
+.kanban-column header span {
+  min-width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  color: white;
+  background: var(--role);
+  border-radius: 8px;
+}
+
+.kanban-column p {
+  min-height: 48px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.kanban-task-stack,
+.template-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.mission-task {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  min-height: 88px;
+  padding: 10px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.mission-task strong {
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.mission-task span,
+.mission-task small {
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.mission-task.review {
+  border-color: color-mix(in srgb, var(--role) 35%, white);
+  background: color-mix(in srgb, var(--role) 8%, white);
+}
+
+.mission-task.late {
+  border-color: rgba(180, 55, 62, 0.5);
+  background: rgba(180, 55, 62, 0.08);
+}
+
+.empty-stage {
+  display: grid;
+  min-height: 72px;
+  place-items: center;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mission-lower-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mission-card {
+  min-height: 220px;
+  padding: 12px;
+}
+
+.mission-card-head {
+  margin-bottom: 10px;
+}
+
+.mission-card-head span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.template-row {
+  display: grid;
+  gap: 4px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.template-row strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.template-row span {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.ratu-table-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 247, 0.94);
+  box-shadow: 0 12px 28px rgba(20, 32, 24, 0.1);
+}
+
+.ratu-table-card header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--role);
+}
+
+.ratu-table {
+  display: grid;
+  gap: 6px;
+  min-width: 760px;
+}
+
+.ratu-table > span {
+  display: none;
+}
+
+.ratu-table-row {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.ratu-table-row.seven {
+  grid-template-columns: 0.9fr 1.2fr 1fr 0.8fr 0.9fr 1.2fr 0.8fr;
+}
+
+.ratu-table-row.six {
+  grid-template-columns: 1.3fr 1.2fr 0.8fr 0.7fr 0.7fr 1fr;
+}
+
+.ratu-table-row strong,
+.ratu-table-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.ratu-table-row span {
+  color: var(--muted);
+}
+
+@media (max-width: 1100px) {
+  .mission-metrics,
+  .mission-lower-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .mission-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .kanban-board {
+    grid-auto-columns: minmax(220px, 78vw);
+  }
+
+  .ratu-table-card {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .mission-header h2 {
+    font-size: 18px;
+  }
+
+  .mission-metrics,
+  .mission-lower-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-metric {
+    min-height: 84px;
+  }
+}
+
 /* Odoo source-of-truth layer */
 .odoo-trace-grid {
   display: grid;
@@ -1780,6 +2182,16 @@ body {
   font-size: 12px;
   line-height: 1.25;
   overflow-wrap: anywhere;
+}
+
+.role-pin-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--role) 8%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 24%, white);
+  border-radius: 8px;
 }
 
 .proof-card {

@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AccountPanel } from '../components/AccountPanel';
 import { AuthGate } from '../components/AuthGate';
-import { BottomNav } from '../components/BottomNav';
+import { BottomNav, getAllowedTabs } from '../components/BottomNav';
 import { ConceptMap } from '../components/ConceptMap';
 import { QueenMascot } from '../components/QueenMascot';
+import { RatuSemutPanel } from '../components/RatuSemutPanel';
 import { ScanPanel } from '../components/ScanPanel';
 import { StorePanel } from '../components/StorePanel';
 import { roleConfigs } from '../lib/mockData';
@@ -31,6 +32,14 @@ export default function Page() {
     return roleConfigs[account.activeRoleId] || roleConfigs.member;
   }, [account]);
 
+  useEffect(() => {
+    if (!account) return;
+    const allowedTabs = getAllowedTabs(account.activeRoleId);
+    if (!allowedTabs.some((tab) => tab.id === activeTab)) {
+      setActiveTab(allowedTabs[0]?.id || 'map');
+    }
+  }, [account, activeTab]);
+
   if (!ready) return <main className="loading-screen">Membuka sarang...</main>;
 
   if (!account) {
@@ -41,11 +50,12 @@ export default function Page() {
     <main className={`superapp theme-${account.experienceTheme}`} style={{ ['--role' as string]: activeRole.theme }}>
       {activeTab === 'map' && <ConceptMap account={account} role={activeRole} />}
       {activeTab === 'store' && <StorePanel account={account} role={activeRole} />}
+      {activeTab === 'ratu' && account.activeRoleId === 'admin' && <RatuSemutPanel account={account} role={activeRole} />}
       {activeTab === 'scan' && <ScanPanel account={account} role={activeRole} />}
       {activeTab === 'account' && <AccountPanel account={account} role={activeRole} onChange={setAccount} onLogout={() => setAccount(null)} />}
 
       <QueenMascot role={activeRole} activeTab={activeTab} />
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} activeRoleId={account.activeRoleId} onTabChange={setActiveTab} />
     </main>
   );
 }

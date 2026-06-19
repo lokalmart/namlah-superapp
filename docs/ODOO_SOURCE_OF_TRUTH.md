@@ -25,13 +25,24 @@ Core task fields:
 - `x_namlah_actor_partner_id`
 - `x_namlah_actor_user_id`
 - `x_namlah_role_code`
+- `x_namlah_koloni_code`
+- `x_namlah_wilayah_code`
 - `x_namlah_tenant_code`
 - `x_namlah_sarang_code`
 - `x_namlah_source_app`
+- `x_namlah_template_code`
+- `x_namlah_plan_code`
 - `x_namlah_mobile_status`
 - `x_namlah_proof_status`
 - `x_namlah_sop_article_id`
 - `x_namlah_sale_order_id`
+
+Core project fields:
+
+- `x_namlah_koloni_code`
+- `x_namlah_wilayah_code`
+- `x_namlah_template_code`
+- `x_namlah_plan_code`
 
 Core sale order fields:
 
@@ -56,6 +67,20 @@ Stage/SOP fields on `project.task.type`:
 
 `knowledge.article` stores SOP content, while `project.task.type` stores the stage-specific reference and mobile hint. When a task enters Survey, Validasi, Pickup, Audit Kasir, or Selesai, the Superapp can render the matching checklist and proof requirement.
 
+## Ratu Semut Dashboard
+
+The first Ratu Semut implementation adds a role-gated `Ratu Semut` menu and mock API gateway routes in this Superapp. The routes do not write to production Odoo yet, but they emit the Odoo envelope shape that the real adapter must preserve:
+
+- `POST /api/semut/register`
+- `POST /api/roles/apply`
+- `POST /api/umkm/onboard`
+- `POST /api/projects/from-template`
+- `PATCH /api/tasks/:taskId/status`
+- `POST /api/tasks/:taskId/proof`
+- `GET /api/dashboard/koloni`
+
+The dashboard uses `project.task` as the mission workflow view and keeps transactions/reports in their native Odoo surfaces: `sale.order`, `project.milestone`, and accounting report lines. Superapp role code `admin` is Ratu Semut; the internal Odoo service user is a technical backend identity, not a Superapp role.
+
 ## Prototype Boundary
 
-This repo remains dummy frontend. It does not call Odoo, does not create portal users, and does not write real sale orders/tasks. The goal is to make the future Odoo contract visible and testable in the UX.
+This repo remains a demo frontend plus mock gateway contract. It does not call production Odoo, does not create portal users in Odoo, and does not write real sale orders/tasks. The goal is to make the future Odoo contract visible and testable in the UX.

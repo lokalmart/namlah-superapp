@@ -1,5 +1,6 @@
 import { roleConfigs } from './mockData';
-import type { ExperienceTheme, RoleId, SemutAccount } from './types';
+import { defaultKoloniCode, defaultWilayahCode, getKoloniNode } from './koloni';
+import type { ExperienceTheme, RoleAssignment, RoleId, SemutAccount } from './types';
 
 const ACCOUNT_KEY = 'namlah_superapp_semut_account';
 
@@ -9,6 +10,11 @@ export function createPinHashDemo(pin: string) {
 
 export function verifyPinDemo(pin: string, hash: string) {
   return createPinHashDemo(pin) === hash;
+}
+
+export function verifyRolePinDemo(pin: string, assignment?: RoleAssignment) {
+  if (!assignment || assignment.status !== 'active') return false;
+  return verifyPinDemo(pin, assignment.rolePinHashDemo);
 }
 
 export function makeSemutId(name: string) {
@@ -21,12 +27,28 @@ export function loadAccount(): SemutAccount | null {
   const raw = window.localStorage.getItem(ACCOUNT_KEY);
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as SemutAccount;
+    const parsed = JSON.parse(raw) as SemutAccount & { roles?: RoleId[] };
     if (!parsed.semutId || !parsed.pinHashDemo) return null;
+    const fallbackRoles: RoleId[] = parsed.roles?.length ? parsed.roles : ['member'];
+    const roleAssignments = parsed.roleAssignments?.length
+      ? parsed.roleAssignments
+      : fallbackRoles.map((roleId) => makeRoleAssignment(roleId, parsed.pinHashDemo));
+    const cleanAssignments = roleAssignments
+      .filter((assignment) => roleConfigs[assignment.roleId])
+      .map((assignment) => ({
+        ...assignment,
+        status: assignment.status || 'active',
+        koloniCode: getKoloniNode(assignment.koloniCode).code,
+        wilayahCode: getKoloniNode(assignment.koloniCode).wilayahCode,
+        registeredAt: assignment.registeredAt || '2026-06-19T00:00:00+07:00',
+      }));
+    const activeRoleId = cleanAssignments.some((assignment) => assignment.roleId === parsed.activeRoleId)
+      ? parsed.activeRoleId
+      : cleanAssignments[0]?.roleId || 'member';
     return {
       ...parsed,
-      roles: parsed.roles?.length ? parsed.roles : ['member'],
-      activeRoleId: roleConfigs[parsed.activeRoleId] ? parsed.activeRoleId : 'member',
+      roleAssignments: cleanAssignments.length ? cleanAssignments : [makeRoleAssignment('member', parsed.pinHashDemo)],
+      activeRoleId,
       experienceTheme: parsed.experienceTheme || 'game',
     };
   } catch {
@@ -42,9 +64,48 @@ export function clearAccount() {
   window.localStorage.removeItem(ACCOUNT_KEY);
 }
 
-export function addRole(account: SemutAccount, roleId: RoleId): SemutAccount {
-  if (account.roles.includes(roleId)) return { ...account, activeRoleId: roleId };
-  return { ...account, roles: [...account.roles, roleId], activeRoleId: roleId };
+export function makeRoleAssignment(roleId: RoleId, rolePinHashDemo: string, koloniCode = defaultKoloniCode): RoleAssignment {
+  const koloni = getKoloniNode(koloniCode);
+  return {
+    roleId,
+    rolePinHashDemo,
+    status: 'active',
+    koloniCode: koloni.code,
+    wilayahCode: koloni.wilayahCode || defaultWilayahCode,
+    registeredAt: new Date().toISOString(),
+  };
+}
+
+export function getRoleAssignments(account: SemutAccount) {
+  return account.roleAssignments || [];
+}
+
+export function getRoleIds(account: SemutAccount): RoleId[] {
+  return getRoleAssignments(account).map((assignment) => assignment.roleId);
+}
+
+export function getActiveRoleAssignment(account: SemutAccount) {
+  return getRoleAssignments(account).find((assignment) => assignment.roleId === account.activeRoleId);
+}
+
+export function getRoleAssignment(account: SemutAccount, roleId: RoleId) {
+  return getRoleAssignments(account).find((assignment) => assignment.roleId === roleId);
+}
+
+export function registerRole(account: SemutAccount, roleId: RoleId, pin: string, koloniCode = defaultKoloniCode): SemutAccount {
+  const rolePinHashDemo = createPinHashDemo(pin);
+  const nextAssignment = makeRoleAssignment(roleId, rolePinHashDemo, koloniCode);
+  const assignments = getRoleAssignments(account).filter((assignment) => assignment.roleId !== roleId);
+  return {
+    ...account,
+    roleAssignments: [...assignments, nextAssignment],
+    activeRoleId: roleId,
+  };
+}
+
+export function activateRole(account: SemutAccount, roleId: RoleId): SemutAccount {
+  if (!getRoleAssignment(account, roleId)) return account;
+  return { ...account, activeRoleId: roleId };
 }
 
 export function setExperienceTheme(account: SemutAccount, experienceTheme: ExperienceTheme): SemutAccount {

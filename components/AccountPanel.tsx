@@ -1,7 +1,10 @@
 import { Crown, Gamepad2, LogOut, Plus, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
+import { useState } from 'react';
+import { PinPad } from './PinPad';
+import { koloniNodes } from '../lib/koloni';
 import { roleConfigs, roleOrder } from '../lib/mockData';
 import { getCustomFieldsByModel, makePortalActor } from '../lib/odooArchitecture';
-import { addRole, clearAccount, setExperienceTheme } from '../lib/storage';
+import { activateRole, clearAccount, getActiveRoleAssignment, getRoleAssignment, getRoleIds, registerRole, setExperienceTheme, verifyRolePinDemo } from '../lib/storage';
 import type { ExperienceTheme, RoleConfig, RoleId, SemutAccount } from '../lib/types';
 
 type AccountPanelProps = {
@@ -13,12 +16,52 @@ type AccountPanelProps = {
 
 export function AccountPanel({ account, role, onChange, onLogout }: AccountPanelProps) {
   const actor = makePortalActor(account);
+  const roleIds = getRoleIds(account);
+  const activeAssignment = getActiveRoleAssignment(account);
   const taskFields = getCustomFieldsByModel('project.task').slice(0, 5);
   const orderFields = getCustomFieldsByModel('sale.order').slice(0, 4);
+  const [switchRoleId, setSwitchRoleId] = useState<RoleId | null>(null);
+  const [registerRoleId, setRegisterRoleId] = useState<RoleId | null>(null);
+  const [rolePin, setRolePin] = useState('');
+  const [roleKoloniCode, setRoleKoloniCode] = useState(activeAssignment?.koloniCode || 'koloni_kejaksan_demo');
+  const [roleMessage, setRoleMessage] = useState('');
 
   function selectRole(roleId: RoleId) {
-    if (!account.roles.includes(roleId)) return;
-    onChange({ ...account, activeRoleId: roleId });
+    if (account.activeRoleId === roleId) return;
+    const assignment = getRoleAssignment(account, roleId);
+    if (!assignment) {
+      setRegisterRoleId(roleId);
+      setSwitchRoleId(null);
+      setRolePin('');
+      setRoleMessage(`Buat PIN khusus untuk ${roleConfigs[roleId].label}.`);
+      return;
+    }
+    setSwitchRoleId(roleId);
+    setRegisterRoleId(null);
+    setRolePin('');
+    setRoleMessage(`Masukkan PIN ${roleConfigs[roleId].label}.`);
+  }
+
+  function submitSwitchRole() {
+    if (!switchRoleId) return;
+    const assignment = getRoleAssignment(account, switchRoleId);
+    if (!verifyRolePinDemo(rolePin, assignment)) {
+      setRoleMessage('PIN role belum cocok.');
+      setRolePin('');
+      return;
+    }
+    onChange(activateRole(account, switchRoleId));
+    setSwitchRoleId(null);
+    setRolePin('');
+    setRoleMessage('');
+  }
+
+  function submitRegisterRole() {
+    if (!registerRoleId || rolePin.length !== 4) return;
+    onChange(registerRole(account, registerRoleId, rolePin, roleKoloniCode));
+    setRegisterRoleId(null);
+    setRolePin('');
+    setRoleMessage('');
   }
 
   function selectTheme(experienceTheme: ExperienceTheme) {
@@ -53,6 +96,8 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
               <strong>{actor.userExternalId}</strong>
               <span>tenant / sarang</span>
               <strong>{actor.tenantCode} / {actor.sarangCode}</strong>
+              <span>role koloni</span>
+              <strong>{activeAssignment?.koloniCode || '-'} / {activeAssignment?.wilayahCode || '-'}</strong>
             </div>
             <div className="theme-switch" aria-label="Pilih experience">
               <button className={account.experienceTheme === 'modern' ? 'theme-option active' : 'theme-option'} type="button" onClick={() => selectTheme('modern')}>
@@ -90,22 +135,46 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
             <div className="role-grid" style={{ marginTop: 14 }}>
               {roleOrder.map((roleId) => {
                 const config = roleConfigs[roleId];
-                const owned = account.roles.includes(roleId);
+                const owned = roleIds.includes(roleId);
                 const active = account.activeRoleId === roleId;
                 return (
                   <button
                     className={active ? 'role-chip active' : owned ? 'role-chip added' : 'role-chip'}
                     type="button"
                     key={roleId}
-                    onClick={() => (owned ? selectRole(roleId) : onChange(addRole(account, roleId)))}
+                    onClick={() => selectRole(roleId)}
                     style={{ ['--role' as string]: config.theme }}
                   >
                     {active ? <Crown size={17} /> : owned ? <ShieldCheck size={17} /> : <Plus size={17} />}
-                    {owned ? config.label : `Tambah ${config.label}`}
+                    {active ? `${config.label} aktif` : owned ? `Buka ${config.label}` : `Daftar ${config.label}`}
                   </button>
                 );
               })}
             </div>
+            {(switchRoleId || registerRoleId) && (
+              <div className="role-pin-panel">
+                <p className="small-label">{switchRoleId ? 'Unlock role' : 'Daftar role'}</p>
+                <h3>{roleConfigs[(switchRoleId || registerRoleId) as RoleId].label}</h3>
+                {registerRoleId && (
+                  <label>
+                    Koloni role
+                    <select value={roleKoloniCode} onChange={(event) => setRoleKoloniCode(event.target.value)}>
+                      {koloniNodes.map((node) => (
+                        <option value={node.code} key={node.code}>{node.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <PinPad
+                  value={rolePin}
+                  onChange={(next) => { setRoleMessage(''); setRolePin(next); }}
+                  onSubmit={switchRoleId ? submitSwitchRole : submitRegisterRole}
+                  submitLabel={switchRoleId ? 'Buka role' : 'Simpan PIN role'}
+                  disabled={Boolean(registerRoleId && rolePin.length !== 4)}
+                />
+                {roleMessage && <p className="muted" style={{ margin: '10px 0 0' }}>{roleMessage}</p>}
+              </div>
+            )}
           </div>
         </div>
       </div>

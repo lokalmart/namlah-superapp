@@ -8,16 +8,45 @@ Dummy frontend showcase untuk konsep superapp Namlah. Repo ini berdiri sendiri d
 - Beranda fullscreen peta konseptual koloni.
 - Role-ID yang mengubah tema, aktivitas, dan aksi utama.
 - Gudang Semut untuk ecommerce dummy.
+- Menu Ratu Semut untuk Kanban misi, sales order, milestones, balance sheet, dan Odoo bridge contract.
 - Scan Jejak untuk barcode/Web3 future flow dummy.
 - Account settings untuk role dan identitas lokal.
 - PWA-first: manifest, icon, service worker ringan.
 
 ## Batas
 
-- Tidak ada koneksi Odoo.
-- Tidak ada API gateway.
+- Koneksi Odoo live bersifat opt-in melalui `NAMLAH_BRIDGE_LIVE=true`.
+- Write ke Odoo tetap terkunci sampai `NAMLAH_BRIDGE_WRITES=true`.
 - Tidak ada blockchain/wallet nyata.
-- Semua data akun dan role tersimpan di browser localStorage.
+- Semua data akun, role, dan PIN role demo tersimpan di browser localStorage.
+
+## API Contract
+
+```text
+GET /api/odoo/health
+GET /api/odoo/schema-audit
+POST /api/semut/register
+POST /api/roles/apply
+POST /api/umkm/onboard
+POST /api/projects/from-template
+PATCH /api/tasks/:taskId/status
+POST /api/tasks/:taskId/proof
+GET /api/dashboard/koloni
+```
+
+## Odoo Bridge
+
+Tahap aman untuk koneksi real:
+
+```text
+1. Isi ODOO_URL, ODOO_DB, ODOO_USERNAME, ODOO_PASSWORD, ODOO_API_MODE.
+2. Cek GET /api/odoo/health.
+3. Cek GET /api/odoo/schema-audit sampai field wajib siap.
+4. Aktifkan NAMLAH_BRIDGE_LIVE=true untuk live read Ratu Semut.
+5. Aktifkan NAMLAH_BRIDGE_WRITES=true hanya setelah schema audit hijau.
+```
+
+Mode API awal mendukung `xmlrpc` karena pola ini sudah dipakai Namlah Studio. `json2` disiapkan sebagai adapter mode untuk Odoo 19+.
 
 ## Validasi
 
