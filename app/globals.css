@@ -1660,3 +1660,185 @@ body {
     display: none;
   }
 }
+
+/* Odoo source-of-truth layer */
+.odoo-trace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.source-card,
+.sop-stage-card {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: rgba(255, 243, 201, 0.93);
+  box-shadow: 0 8px 0 rgba(16, 32, 23, 0.1), 0 20px 36px rgba(0, 0, 0, 0.16);
+}
+
+.theme-modern .source-card,
+.theme-modern .sop-stage-card {
+  background: rgba(255, 253, 247, 0.94);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.source-card {
+  min-height: 76px;
+  padding: 10px;
+}
+
+.source-card span,
+.sop-stage-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.source-card strong,
+.sop-stage-card strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--role);
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+.source-card p,
+.sop-stage-card p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.28;
+}
+
+.source-card.accent {
+  background: color-mix(in srgb, var(--role) 17%, #fff3c9);
+}
+
+.sop-stage-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+}
+
+.sop-stage-card button {
+  min-height: 38px;
+  white-space: nowrap;
+  padding: 0 10px;
+  color: white;
+  background: var(--role);
+  border-radius: 8px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.field-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.field-pill-row span {
+  padding: 6px 8px;
+  color: color-mix(in srgb, var(--role) 78%, black);
+  background: color-mix(in srgb, var(--role) 12%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 28%, white);
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.field-pill-row.stacked {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.portal-map {
+  display: grid;
+  gap: 4px;
+  margin: 14px 0;
+  padding: 10px;
+  background: color-mix(in srgb, var(--role) 9%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 24%, white);
+  border-radius: 8px;
+}
+
+.portal-map span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.portal-map strong {
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.proof-card {
+  background: color-mix(in srgb, var(--role) 10%, white);
+}
+
+.proof-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.proof-chip-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  color: white;
+  background: var(--role);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+@media (max-width: 900px) {
+  .odoo-trace-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .source-card {
+    min-width: 178px;
+    scroll-snap-align: start;
+  }
+
+  .sop-stage-card {
+    align-items: flex-start;
+  }
+
+  .sop-stage-card button {
+    min-height: 34px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 520px) {
+  .odoo-trace-grid,
+  .field-pill-row {
+    display: none;
+  }
+
+  .sop-stage-card {
+    min-height: 62px;
+    padding: 8px;
+  }
+
+  .sop-stage-card p {
+    display: none;
+  }
+}

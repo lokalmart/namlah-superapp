@@ -57,3 +57,48 @@ export type StoreItem = {
   price: string;
   stock: string;
 };
+
+export type OdooSourceModel = 'project.task' | 'sale.order';
+
+export type OdooCustomField = {
+  model: 'project.task' | 'sale.order' | 'project.task.type';
+  name: string;
+  label: string;
+  fieldType: 'char' | 'many2one' | 'selection' | 'text' | 'json';
+  relation?: string;
+  purpose: string;
+};
+
+export type StageSopGuide = {
+  stage: string;
+  sopArticleExternalId: string;
+  stepCode: string;
+  requiredProof: string;
+  checklist: string[];
+  mobileHint: string;
+  nextActionLabel: string;
+  warningText?: string;
+};
+
+export type SourceOfTruthRecord = {
+  id: string;
+  roleId: RoleId;
+  model: OdooSourceModel;
+  title: string;
+  project: string;
+  stage: string;
+  task?: string;
+  saleOrder?: string;
+  linkedRecord: string;
+  fields: Array<{ label: string; value: string }>;
+  sop: StageSopGuide;
+};
+
+export type PortalActor = {
+  semutId: string;
+  partnerExternalId: string;
+  userExternalId?: string;
+  portalStatus: 'partner_only' | 'portal_ready';
+  tenantCode: string;
+  sarangCode: string;
+};

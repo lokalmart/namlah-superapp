@@ -1,5 +1,6 @@
 import { Crown, Gamepad2, LogOut, Plus, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
 import { roleConfigs, roleOrder } from '../lib/mockData';
+import { getCustomFieldsByModel, makePortalActor } from '../lib/odooArchitecture';
 import { addRole, clearAccount, setExperienceTheme } from '../lib/storage';
 import type { ExperienceTheme, RoleConfig, RoleId, SemutAccount } from '../lib/types';
 
@@ -11,6 +12,10 @@ type AccountPanelProps = {
 };
 
 export function AccountPanel({ account, role, onChange, onLogout }: AccountPanelProps) {
+  const actor = makePortalActor(account);
+  const taskFields = getCustomFieldsByModel('project.task').slice(0, 5);
+  const orderFields = getCustomFieldsByModel('sale.order').slice(0, 4);
+
   function selectRole(roleId: RoleId) {
     if (!account.roles.includes(roleId)) return;
     onChange({ ...account, activeRoleId: roleId });
@@ -30,7 +35,7 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
       <header className="screen-header">
         <div>
           <p className="eyebrow">Pengaturan Akun</p>
-          <h2>Semut-ID dan Role-ID.</h2>
+          <h2>Semut-ID, Portal Actor, dan Role-ID.</h2>
         </div>
         <span className="role-badge"><UserRoundCog size={17} /> {role.label}</span>
       </header>
@@ -41,6 +46,14 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
             <p className="small-label">Semut-ID</p>
             <h3>{account.displayName}</h3>
             <p className="muted">{account.semutId}</p>
+            <div className="portal-map">
+              <span>res.partner</span>
+              <strong>{actor.partnerExternalId}</strong>
+              <span>res.users portal</span>
+              <strong>{actor.userExternalId}</strong>
+              <span>tenant / sarang</span>
+              <strong>{actor.tenantCode} / {actor.sarangCode}</strong>
+            </div>
             <div className="theme-switch" aria-label="Pilih experience">
               <button className={account.experienceTheme === 'modern' ? 'theme-option active' : 'theme-option'} type="button" onClick={() => selectTheme('modern')}>
                 <Sparkles size={16} />
@@ -61,10 +74,19 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
             </button>
           </aside>
 
+          <div className="account-card odoo-field-card">
+            <p className="small-label">Odoo custom fields</p>
+            <h3>Project Task + Sales Order</h3>
+            <div className="field-pill-row stacked">
+              {taskFields.map((field) => <span key={field.name}>task: {field.name}</span>)}
+              {orderFields.map((field) => <span key={field.name}>order: {field.name}</span>)}
+            </div>
+          </div>
+
           <div className="account-card">
-          <p className="small-label">Class / Role-ID aktif</p>
-          <h3>{role.label}</h3>
-          <p className="muted">{role.summary}</p>
+            <p className="small-label">Class / Role-ID aktif</p>
+            <h3>{role.label}</h3>
+            <p className="muted">{role.summary}</p>
             <div className="role-grid" style={{ marginTop: 14 }}>
               {roleOrder.map((roleId) => {
                 const config = roleConfigs[roleId];

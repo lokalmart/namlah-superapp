@@ -1,0 +1,146 @@
+import type { OdooCustomField, PortalActor, RoleId, SemutAccount, SourceOfTruthRecord, StageSopGuide } from './types';
+
+export const tenantCode = 'ansor_kecamatan_demo';
+export const sarangCode = 'kedawung_demo';
+
+export function makePortalActor(account: SemutAccount): PortalActor {
+  const cleanSemutId = account.semutId.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  return {
+    semutId: account.semutId,
+    partnerExternalId: `namlah_partner.${cleanSemutId}`,
+    userExternalId: `namlah_portal.${cleanSemutId}`,
+    portalStatus: 'partner_only',
+    tenantCode,
+    sarangCode,
+  };
+}
+
+export const customFields: OdooCustomField[] = [
+  { model: 'project.task', name: 'x_namlah_semut_id', label: 'Namlah Semut-ID', fieldType: 'char', purpose: 'Actor Semut-ID asli dari Superapp.' },
+  { model: 'project.task', name: 'x_namlah_actor_partner_id', label: 'Namlah Actor Partner', fieldType: 'many2one', relation: 'res.partner', purpose: 'Partner portal user yang mewakili Semut-ID.' },
+  { model: 'project.task', name: 'x_namlah_actor_user_id', label: 'Namlah Actor User', fieldType: 'many2one', relation: 'res.users', purpose: 'Portal user bila akses portal Odoo sudah aktif.' },
+  { model: 'project.task', name: 'x_namlah_role_code', label: 'Namlah Role Code', fieldType: 'char', purpose: 'Role-ID aktif saat task/bukti dibuat.' },
+  { model: 'project.task', name: 'x_namlah_tenant_code', label: 'Namlah Tenant Code', fieldType: 'char', purpose: 'Komunitas/tenant, misalnya ansor_kecamatan_demo.' },
+  { model: 'project.task', name: 'x_namlah_sarang_code', label: 'Namlah Sarang Code', fieldType: 'char', purpose: 'Wilayah/unit kerja komunitas.' },
+  { model: 'project.task', name: 'x_namlah_source_app', label: 'Namlah Source App', fieldType: 'char', purpose: 'Superapp atau role app asal record.' },
+  { model: 'project.task', name: 'x_namlah_mobile_status', label: 'Namlah Mobile Status', fieldType: 'selection', purpose: 'Status mobile: draft, submitted, synced, blocked.' },
+  { model: 'project.task', name: 'x_namlah_proof_status', label: 'Namlah Proof Status', fieldType: 'selection', purpose: 'Status bukti: none, required, submitted, approved.' },
+  { model: 'project.task', name: 'x_namlah_sop_article_id', label: 'Namlah SOP Article', fieldType: 'many2one', relation: 'knowledge.article', purpose: 'SOP yang harus tampil untuk stage task.' },
+  { model: 'project.task', name: 'x_namlah_sale_order_id', label: 'Namlah Sale Order', fieldType: 'many2one', relation: 'sale.order', purpose: 'Link ke transaksi kasir bila task adalah shift/audit kasir.' },
+  { model: 'sale.order', name: 'x_namlah_semut_id', label: 'Namlah Semut-ID', fieldType: 'char', purpose: 'Semut-ID kasir/pembuat transaksi.' },
+  { model: 'sale.order', name: 'x_namlah_cashier_partner_id', label: 'Namlah Cashier Partner', fieldType: 'many2one', relation: 'res.partner', purpose: 'Partner portal kasir.' },
+  { model: 'sale.order', name: 'x_namlah_role_code', label: 'Namlah Role Code', fieldType: 'char', purpose: 'Role aktif, misalnya kasir.' },
+  { model: 'sale.order', name: 'x_namlah_tenant_code', label: 'Namlah Tenant Code', fieldType: 'char', purpose: 'Tenant komunitas.' },
+  { model: 'sale.order', name: 'x_namlah_project_id', label: 'Namlah Project', fieldType: 'many2one', relation: 'project.project', purpose: 'Project kasir/program yang menaungi transaksi.' },
+  { model: 'sale.order', name: 'x_namlah_task_id', label: 'Namlah Task/Shift', fieldType: 'many2one', relation: 'project.task', purpose: 'Task shift/audit yang menaungi transaksi.' },
+  { model: 'sale.order', name: 'x_namlah_outlet_code', label: 'Namlah Outlet Code', fieldType: 'char', purpose: 'Kode posko/outlet/kasir.' },
+  { model: 'sale.order', name: 'x_namlah_source_app', label: 'Namlah Source App', fieldType: 'char', purpose: 'App asal transaksi.' },
+  { model: 'project.task.type', name: 'x_namlah_sop_article_id', label: 'Namlah SOP Article', fieldType: 'many2one', relation: 'knowledge.article', purpose: 'Artikel SOP yang muncul pada stage.' },
+  { model: 'project.task.type', name: 'x_namlah_sop_step_code', label: 'Namlah SOP Step Code', fieldType: 'char', purpose: 'Kode langkah mobile untuk stage.' },
+  { model: 'project.task.type', name: 'x_namlah_required_proof', label: 'Namlah Required Proof', fieldType: 'selection', purpose: 'Jenis bukti wajib: foto, lokasi, catatan, barcode.' },
+  { model: 'project.task.type', name: 'x_namlah_checklist_json', label: 'Namlah Checklist JSON', fieldType: 'json', purpose: 'Checklist ringkas yang dirender Superapp.' },
+  { model: 'project.task.type', name: 'x_namlah_mobile_hint', label: 'Namlah Mobile Hint', fieldType: 'text', purpose: 'Instruksi pendek untuk anggota pada stage.' },
+];
+
+export const stageSopGuides: StageSopGuide[] = [
+  {
+    stage: 'Survey',
+    sopArticleExternalId: 'namlah_sop.survey_umkm_lapangan',
+    stepCode: 'SURVEY_FIELD_CHECK',
+    requiredProof: 'foto + lokasi + catatan',
+    checklist: ['Foto lokasi', 'Kontak penanggung jawab', 'Produk/aktivitas utama'],
+    mobileHint: 'Lengkapi foto, GPS, dan catatan sebelum dikirim ke validasi.',
+    nextActionLabel: 'Kirim bukti survey',
+  },
+  {
+    stage: 'Validasi',
+    sopArticleExternalId: 'namlah_sop.validasi_data_komunitas',
+    stepCode: 'ADMIN_VALIDATE',
+    requiredProof: 'catatan admin',
+    checklist: ['Cek actor Semut-ID', 'Cek sarang/unit', 'Cek bukti wajib'],
+    mobileHint: 'Admin memutuskan apakah task siap lanjut atau perlu revisi.',
+    nextActionLabel: 'Validasi task',
+  },
+  {
+    stage: 'Pickup',
+    sopArticleExternalId: 'namlah_sop.pickup_logistik',
+    stepCode: 'RUNNER_PICKUP',
+    requiredProof: 'foto + barcode',
+    checklist: ['Scan paket', 'Foto barang', 'Konfirmasi outlet'],
+    mobileHint: 'Bukti pickup harus terikat ke task rute atau sale order terkait.',
+    nextActionLabel: 'Konfirmasi pickup',
+  },
+  {
+    stage: 'Audit Kasir',
+    sopArticleExternalId: 'namlah_sop.audit_shift_kasir',
+    stepCode: 'CASHIER_SHIFT_AUDIT',
+    requiredProof: 'catatan + rekap transaksi',
+    checklist: ['Cek sale order', 'Cek kas shift', 'Link ke project kasir'],
+    mobileHint: 'Sales order menjadi transaksi utama; task hanya shift/audit.',
+    nextActionLabel: 'Tutup shift',
+    warningText: 'Jangan menulis transaksi kasir sebagai task tanpa sale.order.',
+  },
+  {
+    stage: 'Selesai',
+    sopArticleExternalId: 'namlah_sop.penyelesaian_misi',
+    stepCode: 'MISSION_DONE',
+    requiredProof: 'approved proof',
+    checklist: ['Proof approved', 'Actor tercatat', 'Laporan dampak terupdate'],
+    mobileHint: 'Task selesai setelah bukti dan actor disetujui.',
+    nextActionLabel: 'Selesaikan misi',
+  },
+];
+
+const roleStage: Record<RoleId, string> = {
+  member: 'Selesai',
+  surveyor: 'Survey',
+  kurir: 'Pickup',
+  kasir: 'Audit Kasir',
+  umkm: 'Validasi',
+  admin: 'Validasi',
+  koperasi: 'Selesai',
+};
+
+const sourceModels: Record<RoleId, 'project.task' | 'sale.order'> = {
+  member: 'project.task',
+  surveyor: 'project.task',
+  kurir: 'project.task',
+  kasir: 'sale.order',
+  umkm: 'project.task',
+  admin: 'project.task',
+  koperasi: 'project.task',
+};
+
+export function getStageGuide(roleId: RoleId): StageSopGuide {
+  const stage = roleStage[roleId];
+  return stageSopGuides.find((guide) => guide.stage === stage) || stageSopGuides[0];
+}
+
+export function getSourceOfTruth(roleId: RoleId): SourceOfTruthRecord {
+  const model = sourceModels[roleId];
+  const stageGuide = getStageGuide(roleId);
+  const isKasir = roleId === 'kasir';
+  return {
+    id: `source-${roleId}`,
+    roleId,
+    model,
+    title: isKasir ? 'Sale Order kasir terikat shift task' : 'Project Task misi komunitas',
+    project: isKasir ? 'Kasir GP Ansor Kecamatan' : 'Misi Komunitas Ansor Kecamatan',
+    stage: stageGuide.stage,
+    task: isKasir ? 'Shift Kasir Posko A / Audit Harian' : `${stageGuide.stage} / ${roleId}`,
+    saleOrder: isKasir ? 'SO-KASIR-POSKO-A-0007' : undefined,
+    linkedRecord: isKasir ? 'sale.order -> project.task shift' : 'project.task -> knowledge.article SOP',
+    sop: stageGuide,
+    fields: [
+      { label: 'Actor', value: 'x_namlah_semut_id' },
+      { label: 'Role', value: 'x_namlah_role_code' },
+      { label: 'Tenant', value: 'x_namlah_tenant_code' },
+      { label: 'Sarang', value: 'x_namlah_sarang_code' },
+      { label: 'SOP', value: 'x_namlah_sop_article_id' },
+    ],
+  };
+}
+
+export function getCustomFieldsByModel(model: OdooCustomField['model']) {
+  return customFields.filter((field) => field.model === model);
+}

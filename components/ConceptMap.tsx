@@ -1,5 +1,6 @@
 import { Boxes, CircleDollarSign, Gem, Home, LayoutGrid, MapPin, Route, Shield, Sparkles, Store, Wand2 } from 'lucide-react';
 import { activities, nestPins } from '../lib/mockData';
+import { getSourceOfTruth, makePortalActor } from '../lib/odooArchitecture';
 import type { NestPin, RoleConfig, SemutAccount } from '../lib/types';
 
 type ConceptMapProps = {
@@ -22,6 +23,8 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
   const activityCount = visiblePins.reduce((total, pin) => total + pin.activityCount, 0);
   const tileCount = Array.from({ length: 36 }, (_, index) => index);
   const squadCount = Math.max(3, Math.min(9, Math.ceil(activityCount / 9)));
+  const actor = makePortalActor(account);
+  const source = getSourceOfTruth(role.id);
 
   return (
     <section className={account.experienceTheme === 'game' ? 'map-stage game-map' : 'map-stage modern-map'} aria-label="Beranda peta sarang">
@@ -47,8 +50,8 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
             <span>Aktivitas pin</span>
           </div>
           <div className="map-meter compact">
-            <strong>LV. {visiblePins.length + 2}</strong>
-            <span>Kekuatan sarang</span>
+            <strong>{source.model}</strong>
+            <span>Source of truth</span>
           </div>
         </div>
       </div>
@@ -103,14 +106,8 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
 
       <section className="role-workspace" aria-label={`Menu ${role.label}`}>
         <div className="role-workspace-head">
-          <span className="role-badge">
-            <LayoutGrid size={16} />
-            {role.dashboardLabel}
-          </span>
-          <span className="theme-chip">
-            {account.experienceTheme === 'game' ? <Sparkles size={14} /> : <Wand2 size={14} />}
-            {account.experienceTheme}
-          </span>
+          <span className="role-badge"><LayoutGrid size={16} />{role.dashboardLabel}</span>
+          <span className="theme-chip">{account.experienceTheme === 'game' ? <Sparkles size={14} /> : <Wand2 size={14} />}{account.experienceTheme}</span>
         </div>
         <div className="quick-stat-row">
           {role.quickStats.map((stat) => (
@@ -118,6 +115,36 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
               <strong>{stat.value}</strong>
               <span>{stat.label}</span>
             </div>
+          ))}
+        </div>
+        <div className="odoo-trace-grid">
+          <article className="source-card">
+            <span>Semut-ID Portal Actor</span>
+            <strong>{actor.semutId}</strong>
+            <p>{actor.partnerExternalId} / {actor.portalStatus}</p>
+          </article>
+          <article className="source-card accent">
+            <span>Source of Truth</span>
+            <strong>{source.model}</strong>
+            <p>{source.title}</p>
+          </article>
+          <article className="source-card">
+            <span>Project / Stage</span>
+            <strong>{source.project}</strong>
+            <p>{source.stage} / {source.task}</p>
+          </article>
+        </div>
+        <div className="sop-stage-card">
+          <div>
+            <span>SOP Stage</span>
+            <strong>{source.sop.stepCode}</strong>
+            <p>{source.sop.mobileHint}</p>
+          </div>
+          <button type="button">{source.sop.nextActionLabel}</button>
+        </div>
+        <div className="field-pill-row">
+          {source.fields.map((field) => (
+            <span key={field.label}>{field.label}: {field.value}</span>
           ))}
         </div>
         <div className="role-menu-row">
