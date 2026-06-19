@@ -144,7 +144,7 @@ const requiredModels: ModelSpec[] = [
       { name: 'name', type: 'char' },
       { name: 'datas', type: 'binary' },
       { name: 'res_model', type: 'char' },
-      { name: 'res_id', type: 'integer' },
+      { name: 'res_id' },
       { name: 'mimetype', type: 'char' },
     ],
   },

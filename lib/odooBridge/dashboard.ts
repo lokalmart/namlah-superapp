@@ -339,27 +339,21 @@ export async function buildLiveKoloniDashboard(roleId: RoleId, koloniCode: strin
   const client = await createOdooBridgeClient();
   const domain = koloniDomain(scope.scopeKoloniCodes);
 
-  await Promise.all([
-    assertScopeField(client, 'project.task'),
-    assertScopeField(client, 'sale.order'),
-    assertScopeField(client, 'project.milestone'),
-    assertScopeField(client, 'account.move.line'),
-  ]);
+  await assertScopeField(client, 'project.task');
+  await assertScopeField(client, 'sale.order');
+  await assertScopeField(client, 'project.milestone');
+  await assertScopeField(client, 'account.move.line');
 
-  const [taskFields, salesFields, milestoneFields, moveLineFields] = await Promise.all([
-    existingFields(client, 'project.task', ['id', 'name', 'project_id', 'stage_id', 'parent_id', 'child_ids', 'date_deadline', 'priority', 'create_date', 'write_date', 'x_namlah_semut_id', 'x_namlah_role_code', 'x_namlah_koloni_code', 'x_namlah_wilayah_code', 'x_namlah_source_app', 'x_namlah_template_code', 'x_namlah_plan_code', 'x_namlah_mobile_status', 'x_namlah_proof_status']),
-    existingFields(client, 'sale.order', ['id', 'name', 'partner_id', 'amount_total', 'state', 'date_order', 'x_namlah_source_app', 'x_namlah_task_id', 'x_namlah_koloni_code']),
-    existingFields(client, 'project.milestone', ['id', 'name', 'project_id', 'deadline', 'is_reached', 'x_namlah_koloni_code']),
-    existingFields(client, 'account.move.line', ['id', 'account_id', 'debit', 'credit', 'balance', 'date', 'parent_state', 'x_namlah_koloni_code']),
-  ]);
+  const taskFields = await existingFields(client, 'project.task', ['id', 'name', 'project_id', 'stage_id', 'parent_id', 'child_ids', 'date_deadline', 'priority', 'create_date', 'write_date', 'x_namlah_semut_id', 'x_namlah_role_code', 'x_namlah_koloni_code', 'x_namlah_wilayah_code', 'x_namlah_source_app', 'x_namlah_template_code', 'x_namlah_plan_code', 'x_namlah_mobile_status', 'x_namlah_proof_status']);
+  const salesFields = await existingFields(client, 'sale.order', ['id', 'name', 'partner_id', 'amount_total', 'state', 'date_order', 'x_namlah_source_app', 'x_namlah_task_id', 'x_namlah_koloni_code']);
+  const milestoneFields = await existingFields(client, 'project.milestone', ['id', 'name', 'project_id', 'deadline', 'is_reached', 'x_namlah_koloni_code']);
+  const moveLineFields = await existingFields(client, 'account.move.line', ['id', 'account_id', 'debit', 'credit', 'balance', 'date', 'parent_state', 'x_namlah_koloni_code']);
 
   const moveLineDomain: OdooDomain = moveLineFields.includes('parent_state') ? [...domain, ['parent_state', '=', 'posted']] : domain;
-  const [taskRows, salesRows, milestoneRows, moveLineRows] = await Promise.all([
-    client.searchRead<OdooTaskRow>('project.task', domain, taskFields, { limit: 500, order: 'write_date desc' }),
-    client.searchRead<OdooSalesOrderRow>('sale.order', domain, salesFields, { limit: 200, order: 'date_order desc' }),
-    client.searchRead<OdooMilestoneRow>('project.milestone', domain, milestoneFields, { limit: 200, order: 'deadline asc' }),
-    client.searchRead<OdooMoveLineRow>('account.move.line', moveLineDomain, moveLineFields.filter((field) => field !== 'parent_state'), { limit: 2000, order: 'date desc' }),
-  ]);
+  const taskRows = await client.searchRead<OdooTaskRow>('project.task', domain, taskFields, { limit: 500, order: 'write_date desc' });
+  const salesRows = await client.searchRead<OdooSalesOrderRow>('sale.order', domain, salesFields, { limit: 200, order: 'date_order desc' });
+  const milestoneRows = await client.searchRead<OdooMilestoneRow>('project.milestone', domain, milestoneFields, { limit: 200, order: 'deadline asc' });
+  const moveLineRows = await client.searchRead<OdooMoveLineRow>('account.move.line', moveLineDomain, moveLineFields.filter((field) => field !== 'parent_state'), { limit: 2000, order: 'date desc' });
 
   const tasks = taskRows.map(toTask);
   const salesOrders = salesRows.map(toSalesOrder);
