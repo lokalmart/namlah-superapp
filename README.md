@@ -5,6 +5,7 @@ Dummy frontend showcase untuk konsep superapp Namlah. Repo ini berdiri sendiri d
 ## Fokus
 
 - Semut-ID dummy dengan PIN 4 digit.
+- Semut-ID baru wajib memilih koloni awal sebelum role `member` aktif.
 - Beranda fullscreen peta konseptual koloni.
 - Role-ID yang mengubah tema, aktivitas, dan aksi utama.
 - Gudang Semut untuk ecommerce dummy.
@@ -17,6 +18,7 @@ Dummy frontend showcase untuk konsep superapp Namlah. Repo ini berdiri sendiri d
 
 - Koneksi Odoo live bersifat opt-in melalui `NAMLAH_BRIDGE_LIVE=true`.
 - Write ke Odoo tetap terkunci sampai `NAMLAH_BRIDGE_WRITES=true`.
+- Koloni adalah boundary data dan akses. Tidak ada boundary komunitas terpisah dalam kontrak Superapp/Odoo.
 - Tidak ada blockchain/wallet nyata.
 - Semua data akun, role, dan PIN role demo tersimpan di browser localStorage.
 
@@ -26,12 +28,19 @@ Dummy frontend showcase untuk konsep superapp Namlah. Repo ini berdiri sendiri d
 GET /api/odoo/health
 GET /api/odoo/schema-audit
 POST /api/semut/register
+GET /api/colonies
+POST /api/colonies
+POST /api/colonies/:koloniCode/join
+POST /api/colonies/:koloniCode/parent-request
+POST /api/colonies/:koloniCode/parent-approval
+PATCH /api/colonies/:koloniCode/policy
 POST /api/roles/apply
 POST /api/umkm/onboard
 POST /api/projects/from-template
 PATCH /api/tasks/:taskId/status
 POST /api/tasks/:taskId/proof
 GET /api/dashboard/koloni
+GET /api/ratu/dashboard
 ```
 
 ## Odoo Bridge

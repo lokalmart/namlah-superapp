@@ -3,6 +3,7 @@
 import { KeyRound, Sparkles, UserRoundPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { PinPad } from './PinPad';
+import { defaultKoloniCode, getJoinableKoloniNodes, getKoloniNode } from '../lib/koloni';
 import { roleConfigs } from '../lib/mockData';
 import { createPinHashDemo, loadAccount, makeRoleAssignment, makeSemutId, saveAccount, verifyPinDemo } from '../lib/storage';
 import type { SemutAccount } from '../lib/types';
@@ -16,16 +17,19 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
   const [mode, setMode] = useState<'login' | 'create'>(existing ? 'login' : 'create');
   const [displayName, setDisplayName] = useState('');
   const [semutId, setSemutId] = useState('');
+  const [koloniCode, setKoloniCode] = useState(defaultKoloniCode);
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
+  const joinableKoloni = getJoinableKoloniNodes();
+  const selectedKoloni = getKoloniNode(koloniCode);
 
   function createAccount() {
-    if (!displayName.trim() || pin.length !== 4) return;
+    if (!displayName.trim() || pin.length !== 4 || !selectedKoloni) return;
     const account: SemutAccount = {
       semutId: semutId.trim() || makeSemutId(displayName),
       displayName: displayName.trim(),
       pinHashDemo: createPinHashDemo(pin),
-      roleAssignments: [makeRoleAssignment('member', createPinHashDemo(pin))],
+      roleAssignments: [makeRoleAssignment('member', createPinHashDemo(pin), selectedKoloni.code)],
       activeRoleId: 'member',
       experienceTheme: 'game',
     };
@@ -73,7 +77,18 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
                   Semut-ID
                   <input value={semutId} onChange={(event) => setSemutId(event.target.value)} placeholder="Otomatis bila dikosongkan" />
                 </label>
+                <label>
+                  Koloni awal
+                  <select value={koloniCode} onChange={(event) => setKoloniCode(event.target.value)}>
+                    {joinableKoloni.map((node) => (
+                      <option value={node.code} key={node.code}>{node.name}</option>
+                    ))}
+                  </select>
+                </label>
               </div>
+              <p className="muted" style={{ margin: '8px 0 0' }}>
+                Role Member akan dibuat di {selectedKoloni.name}; role lain nanti tetap memilih koloni dan PIN sendiri.
+              </p>
               <PinPad value={pin} onChange={setPin} onSubmit={createAccount} submitLabel="Buat Semut-ID" disabled={!displayName.trim()} />
               {existing && (
                 <button className="primary-action secondary" type="button" onClick={() => { setMode('login'); setPin(''); }} style={{ marginTop: 10 }}>
@@ -95,8 +110,8 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
         </div>
 
         <div className="panel" style={{ padding: 16 }}>
-          <p className="small-label">Role awal</p>
-          <p className="muted" style={{ marginBottom: 12 }}>Akun baru dimulai sebagai Member. Role lain bisa ditambahkan dari Akun.</p>
+          <p className="small-label">Role awal + koloni</p>
+          <p className="muted" style={{ marginBottom: 12 }}>Akun baru wajib bergabung ke satu koloni sebagai Member. Role lain bisa ditambahkan dari Akun.</p>
           <div className="role-grid">
             {Object.values(roleConfigs).slice(0, 4).map((role) => (
               <div className="role-chip added" key={role.id} style={{ ['--role' as string]: role.theme }}>

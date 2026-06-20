@@ -2,6 +2,7 @@
 
 import { AlertTriangle, ClipboardCheck, Crown, FileBarChart, KanbanSquare, Landmark, Play, RefreshCcw, ShieldCheck, ShoppingCart, Sparkles, type LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { describeKoloniPolicy, getKoloniNode, getKoloniScope } from '../lib/koloni';
 import { buildKoloniDashboard, stagesForFlow } from '../lib/projectControlTower';
 import { getActiveRoleAssignment } from '../lib/storage';
 import type { NamlahKoloniDashboard, NamlahKanbanFlow, NamlahRatuView, RoleConfig, SemutAccount } from '../lib/types';
@@ -27,6 +28,9 @@ const viewButtons: Array<{ id: NamlahRatuView; label: string; icon: LucideIcon }
 export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
   const assignment = getActiveRoleAssignment(account);
   const koloniCode = assignment?.koloniCode;
+  const koloniNode = useMemo(() => getKoloniNode(koloniCode), [koloniCode]);
+  const koloniScope = useMemo(() => getKoloniScope(koloniCode), [koloniCode]);
+  const koloniPolicy = useMemo(() => describeKoloniPolicy(koloniNode), [koloniNode]);
   const [activeView, setActiveView] = useState<NamlahRatuView>('kanban');
   const [flow, setFlow] = useState<NamlahKanbanFlow>('umkm_onboarding');
   const [dashboard, setDashboard] = useState<NamlahKoloniDashboard>(() => buildKoloniDashboard(account.activeRoleId, koloniCode, 'kanban'));
@@ -48,7 +52,7 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
           view: activeView,
         });
         if (koloniCode) params.set('koloniCode', koloniCode);
-        const response = await fetch(`/api/dashboard/koloni?${params.toString()}`, { cache: 'no-store' });
+        const response = await fetch(`/api/ratu/dashboard?${params.toString()}`, { cache: 'no-store' });
         if (!response.ok) throw new Error('dashboard failed');
         const nextDashboard = await response.json() as NamlahKoloniDashboard;
         if (active) {
@@ -81,6 +85,7 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
           semutId: account.semutId,
           ownerName: account.displayName,
           businessName: `${account.displayName} Mart`,
+          koloniCode,
         }),
       });
       const result = await response.json() as { ok?: boolean; tasks?: Array<{ title: string }> };
@@ -107,8 +112,8 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
           <div className="mission-sync-card">
             <Crown size={20} />
             <div>
-              <strong>{dashboard.koloniCode}</strong>
-              <span>{dashboard.wilayahCode} / {dashboard.generatedAt}</span>
+              <strong>{koloniScope.label}</strong>
+              <span>{dashboard.koloniCode} / {dashboard.wilayahCode} / {dashboard.generatedAt}</span>
             </div>
           </div>
           <div className="mission-actions">
@@ -121,6 +126,11 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
         </section>
 
         <section className="mission-metrics" aria-label="Ringkasan dashboard koloni">
+          <article className="mission-metric">
+            <span>Policy koloni</span>
+            <strong>{koloniPolicy.accessMode}</strong>
+            <p>{koloniPolicy.catalogVisibility} / child scope {koloniScope.childCount}</p>
+          </article>
           {dashboard.metrics.map((metric) => (
             <article className="mission-metric" key={metric.label}>
               <span>{metric.label}</span>

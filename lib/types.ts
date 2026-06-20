@@ -63,8 +63,12 @@ export type AntActivity = {
 
 export type StoreItem = {
   id: string;
+  listingCode: string;
   title: string;
   category: string;
+  koloniCode: string;
+  ownerLabel: string;
+  visibility: 'private' | 'parent_scope' | 'public_catalog';
   price: string;
   stock: string;
 };
@@ -110,8 +114,8 @@ export type PortalActor = {
   partnerExternalId: string;
   userExternalId?: string;
   portalStatus: 'partner_only' | 'portal_ready';
-  tenantCode: string;
-  sarangCode: string;
+  koloniCode: string;
+  wilayahCode: string;
 };
 
 export type NamlahKanbanFlow = 'umkm_onboarding' | 'umkm_promotion' | 'donation_program';

@@ -4,7 +4,7 @@ This document is the working blueprint for using Odoo Project, Sales, Milestones
 
 ## Position
 
-`project.project` and `project.task` are the mission workflow layer for community work, role execution, proof collection, onboarding, promotion, delivery, and donation programs. They are not a replacement for Odoo Sales, Inventory, POS, Accounting, or Invoice ledgers.
+`project.project` and `project.task` are the mission workflow layer for koloni work, role execution, proof collection, onboarding, promotion, delivery, and donation programs. They are not a replacement for Odoo Sales, Inventory, POS, Accounting, or Invoice ledgers.
 
 ## Runtime Contract
 
@@ -15,16 +15,26 @@ This document is the working blueprint for using Odoo Project, Sales, Milestones
 - Superapp role code `admin` is displayed as Ratu Semut.
 - Internal Odoo admin/service user is not a Superapp role.
 - Each Role-ID has its own PIN.
+- A separate community boundary is not part of the Namlah data model. Koloni is the access boundary and Ratu Koloni is the configurator.
+- Semut-ID registration must choose a koloni before the first `member` role is active.
+- Parent-child koloni visibility requires an approved relation and policy permission; ownership stays with the child Ratu Koloni.
 
 ## Implemented V1 Endpoints
 
 - `POST /api/semut/register`
+- `GET /api/colonies`
+- `POST /api/colonies`
+- `POST /api/colonies/:koloniCode/join`
+- `POST /api/colonies/:koloniCode/parent-request`
+- `POST /api/colonies/:koloniCode/parent-approval`
+- `PATCH /api/colonies/:koloniCode/policy`
 - `POST /api/roles/apply`
 - `POST /api/umkm/onboard`
 - `POST /api/projects/from-template`
 - `PATCH /api/tasks/:taskId/status`
 - `POST /api/tasks/:taskId/proof`
 - `GET /api/dashboard/koloni`
+- `GET /api/ratu/dashboard`
 
 These endpoints currently return deterministic demo payloads and Odoo write envelopes. Replace the envelope executor later with the real Odoo adapter without changing the role apps.
 

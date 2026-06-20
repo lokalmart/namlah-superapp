@@ -1,7 +1,7 @@
 import { Crown, Gamepad2, LogOut, Plus, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
 import { useState } from 'react';
 import { PinPad } from './PinPad';
-import { koloniNodes } from '../lib/koloni';
+import { defaultKoloniCode, describeKoloniPolicy, getJoinableKoloniNodes, getKoloniNode, getKoloniScope } from '../lib/koloni';
 import { roleConfigs, roleOrder } from '../lib/mockData';
 import { getCustomFieldsByModel, makePortalActor } from '../lib/odooArchitecture';
 import { activateRole, clearAccount, getActiveRoleAssignment, getRoleAssignment, getRoleIds, registerRole, setExperienceTheme, verifyRolePinDemo } from '../lib/storage';
@@ -18,12 +18,16 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
   const actor = makePortalActor(account);
   const roleIds = getRoleIds(account);
   const activeAssignment = getActiveRoleAssignment(account);
+  const activeKoloni = getKoloniNode(activeAssignment?.koloniCode);
+  const activeKoloniScope = getKoloniScope(activeAssignment?.koloniCode);
+  const activeKoloniPolicy = describeKoloniPolicy(activeKoloni);
+  const joinableKoloni = getJoinableKoloniNodes();
   const taskFields = getCustomFieldsByModel('project.task').slice(0, 5);
   const orderFields = getCustomFieldsByModel('sale.order').slice(0, 4);
   const [switchRoleId, setSwitchRoleId] = useState<RoleId | null>(null);
   const [registerRoleId, setRegisterRoleId] = useState<RoleId | null>(null);
   const [rolePin, setRolePin] = useState('');
-  const [roleKoloniCode, setRoleKoloniCode] = useState(activeAssignment?.koloniCode || 'koloni_kejaksan_demo');
+  const [roleKoloniCode, setRoleKoloniCode] = useState(activeAssignment?.koloniCode || defaultKoloniCode);
   const [roleMessage, setRoleMessage] = useState('');
 
   function selectRole(roleId: RoleId) {
@@ -94,10 +98,10 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
               <strong>{actor.partnerExternalId}</strong>
               <span>res.users portal</span>
               <strong>{actor.userExternalId}</strong>
-              <span>tenant / sarang</span>
-              <strong>{actor.tenantCode} / {actor.sarangCode}</strong>
-              <span>role koloni</span>
-              <strong>{activeAssignment?.koloniCode || '-'} / {activeAssignment?.wilayahCode || '-'}</strong>
+              <span>koloni / wilayah</span>
+              <strong>{actor.koloniCode} / {actor.wilayahCode}</strong>
+              <span>role aktif</span>
+              <strong>{activeAssignment?.roleId || '-'} / {activeAssignment?.status || '-'}</strong>
             </div>
             <div className="theme-switch" aria-label="Pilih experience">
               <button className={account.experienceTheme === 'modern' ? 'theme-option active' : 'theme-option'} type="button" onClick={() => selectTheme('modern')}>
@@ -127,6 +131,29 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
               {orderFields.map((field) => <span key={field.name}>order: {field.name}</span>)}
             </div>
           </div>
+
+          {account.activeRoleId === 'admin' && (
+            <div className="account-card">
+              <p className="small-label">Configurator Ratu Koloni</p>
+              <h3>{activeKoloni.name}</h3>
+              <p className="muted">{activeKoloni.geoAreaName} / {activeKoloniScope.label}</p>
+              <div className="portal-map">
+                <span>ratu utama</span>
+                <strong>{activeKoloniPolicy.primaryRatuSemutId}</strong>
+                <span>mode</span>
+                <strong>{activeKoloniPolicy.accessMode}</strong>
+                <span>join policy</span>
+                <strong>{activeKoloniPolicy.joinPolicy}</strong>
+                <span>catalog</span>
+                <strong>{activeKoloniPolicy.catalogVisibility}</strong>
+                <span>parent</span>
+                <strong>{activeKoloni.parentKoloniCode || 'mandiri'} / {activeKoloni.parentRelationStatus || '-'}</strong>
+              </div>
+              <p className="muted" style={{ marginTop: 12 }}>
+                Ratu Koloni mengatur koloni ini. Relasi parent-child memberi visibility sesuai policy, tidak memindahkan kepemilikan koloni.
+              </p>
+            </div>
+          )}
 
           <div className="account-card">
             <p className="small-label">Class / Role-ID aktif</p>
@@ -159,7 +186,7 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
                   <label>
                     Koloni role
                     <select value={roleKoloniCode} onChange={(event) => setRoleKoloniCode(event.target.value)}>
-                      {koloniNodes.map((node) => (
+                      {joinableKoloni.map((node) => (
                         <option value={node.code} key={node.code}>{node.name}</option>
                       ))}
                     </select>

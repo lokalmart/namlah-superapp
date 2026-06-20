@@ -1,6 +1,5 @@
 import { roleConfigs } from './mockData';
-import { sarangCode, tenantCode } from './odooArchitecture';
-import { defaultKoloniCode, defaultWilayahCode, getKoloniScope } from './koloni';
+import { defaultKoloniCode, defaultWilayahCode, getKoloniNode, getKoloniScope } from './koloni';
 import type {
   NamlahAuditEvent,
   NamlahBalanceSheetLine,
@@ -166,8 +165,9 @@ function flowStages(flow: NamlahKanbanFlow) {
   return controlStages.filter((stage) => stage.flow === flow).sort((a, b) => a.sequence - b.sequence);
 }
 
-function flattenBlueprint(template: NamlahPlanTemplate, semutId: string, seed: string, rootTitle?: string): NamlahControlTask[] {
+function flattenBlueprint(template: NamlahPlanTemplate, semutId: string, seed: string, rootTitle?: string, koloniCode = defaultKoloniCode): NamlahControlTask[] {
   const tasks: NamlahControlTask[] = [];
+  const koloni = getKoloniNode(koloniCode);
 
   function visit(blueprint: NamlahTaskBlueprint, parentId: string | undefined, indexPath: string) {
     const stage = stageByCode(blueprint.stageCode);
@@ -182,8 +182,8 @@ function flattenBlueprint(template: NamlahPlanTemplate, semutId: string, seed: s
       stageLabel: stage.label,
       roleCode: blueprint.roleCode,
       semutId,
-      koloniCode: defaultKoloniCode,
-      wilayahCode: defaultWilayahCode,
+      koloniCode: koloni.code,
+      wilayahCode: koloni.wilayahCode || defaultWilayahCode,
       sourceApp: template.sourceApp,
       templateCode: template.code,
       planCode: `${template.code}.${seed}`,
@@ -362,45 +362,47 @@ function envelope(params: {
   roleCode: RoleId;
   sourceApp: string;
   targetModel: NamlahOdooEnvelope['targetModel'];
+  koloniCode?: string;
   fields: NamlahOdooEnvelope['fields'];
 }): NamlahOdooEnvelope {
+  const koloni = getKoloniNode(params.koloniCode);
   return {
     serviceUser: odooServiceUser,
     targetModel: params.targetModel,
     sourceApp: params.sourceApp,
     actorSemutId: params.actorSemutId,
     roleCode: params.roleCode,
-    koloniCode: defaultKoloniCode,
-    wilayahCode: defaultWilayahCode,
+    koloniCode: koloni.code,
+    wilayahCode: koloni.wilayahCode || defaultWilayahCode,
     fields: {
       x_namlah_semut_id: params.actorSemutId,
       x_namlah_role_code: params.roleCode,
-      x_namlah_koloni_code: defaultKoloniCode,
-      x_namlah_wilayah_code: defaultWilayahCode,
+      x_namlah_koloni_code: koloni.code,
+      x_namlah_wilayah_code: koloni.wilayahCode || defaultWilayahCode,
       x_namlah_source_app: params.sourceApp,
-      x_namlah_tenant_code: tenantCode,
-      x_namlah_sarang_code: sarangCode,
       ...params.fields,
     },
   };
 }
 
-export function buildSemutRegistration(input: Partial<SemutAccount>) {
+export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCode?: string }) {
   const semutId = input.semutId || 'SMT-DEMO-NEW';
+  const koloni = getKoloniNode(input.koloniCode);
   return {
     ok: true,
     actor: {
       semutId,
       displayName: input.displayName || 'Semut Baru',
       defaultRole: 'member' satisfies RoleId,
-      koloniCode: defaultKoloniCode,
-      wilayahCode: defaultWilayahCode,
+      koloniCode: koloni.code,
+      wilayahCode: koloni.wilayahCode || defaultWilayahCode,
     },
     odoo: envelope({
       actorSemutId: semutId,
       roleCode: 'member',
       sourceApp: 'namlah-superapp',
       targetModel: 'res.partner',
+      koloniCode: koloni.code,
       fields: {
         name: input.displayName || 'Semut Baru',
         ref: semutId,
@@ -409,22 +411,24 @@ export function buildSemutRegistration(input: Partial<SemutAccount>) {
   };
 }
 
-export function buildRoleApplication(input: { semutId?: string; roleCode?: RoleId; sourceApp?: string }) {
+export function buildRoleApplication(input: { semutId?: string; roleCode?: RoleId; sourceApp?: string; koloniCode?: string }) {
   const roleCode = input.roleCode || 'umkm';
+  const koloni = getKoloniNode(input.koloniCode);
   return {
     ok: true,
     roleApplication: {
       semutId: input.semutId || 'SMT-DEMO-ROLE',
       roleCode,
       status: roleCode === 'admin' ? 'needs_admin_approval' : 'submitted',
-      koloniCode: defaultKoloniCode,
-      wilayahCode: defaultWilayahCode,
+      koloniCode: koloni.code,
+      wilayahCode: koloni.wilayahCode || defaultWilayahCode,
     },
     odoo: envelope({
       actorSemutId: input.semutId || 'SMT-DEMO-ROLE',
       roleCode,
       sourceApp: input.sourceApp || 'namlah-superapp',
       targetModel: 'project.task',
+      koloniCode: koloni.code,
       fields: {
         name: `Role-ID application: ${roleConfigs[roleCode].label}`,
         x_namlah_mobile_status: 'submitted',
@@ -436,20 +440,22 @@ export function buildRoleApplication(input: { semutId?: string; roleCode?: RoleI
   };
 }
 
-export function buildUmkmOnboarding(input: { semutId?: string; businessName?: string; ownerName?: string }) {
+export function buildUmkmOnboarding(input: { semutId?: string; businessName?: string; ownerName?: string; koloniCode?: string }) {
   const template = getTemplate('umkm_onboarding_basic');
   const semutId = input.semutId || 'SMT-UMKM-NEW';
-  const tasks = flattenBlueprint(template, semutId, semutId.toLowerCase().replace(/[^a-z0-9]+/g, '_'), `Onboarding UMKM ${input.businessName || input.ownerName || semutId}`);
+  const koloni = getKoloniNode(input.koloniCode);
+  const tasks = flattenBlueprint(template, semutId, semutId.toLowerCase().replace(/[^a-z0-9]+/g, '_'), `Onboarding UMKM ${input.businessName || input.ownerName || semutId}`, koloni.code);
   return {
     ok: true,
     template,
     tasks,
-    dashboard: buildKoloniDashboard('umkm'),
+    dashboard: buildKoloniDashboard('umkm', koloni.code),
     odoo: envelope({
       actorSemutId: semutId,
       roleCode: 'umkm',
       sourceApp: 'namlah-umkm',
       targetModel: 'project.task',
+      koloniCode: koloni.code,
       fields: {
         name: tasks[0]?.title || 'Onboarding UMKM',
         x_namlah_template_code: template.code,
@@ -461,12 +467,13 @@ export function buildUmkmOnboarding(input: { semutId?: string; businessName?: st
   };
 }
 
-export function buildProjectFromTemplate(input: { semutId?: string; roleCode?: RoleId; templateCode?: NamlahProjectTemplateCode; planName?: string }) {
+export function buildProjectFromTemplate(input: { semutId?: string; roleCode?: RoleId; templateCode?: NamlahProjectTemplateCode; planName?: string; koloniCode?: string }) {
   const template = getTemplate(input.templateCode || 'donation_execution_plan');
   const roleCode = input.roleCode || template.roleScope[0] || 'admin';
   const semutId = input.semutId || 'SMT-PLAN-NEW';
+  const koloni = getKoloniNode(input.koloniCode);
   const seed = `${template.code}_${semutId}`.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-  const tasks = flattenBlueprint(template, semutId, seed, input.planName);
+  const tasks = flattenBlueprint(template, semutId, seed, input.planName, koloni.code);
   return {
     ok: true,
     template,
@@ -474,8 +481,8 @@ export function buildProjectFromTemplate(input: { semutId?: string; roleCode?: R
       name: input.planName || template.projectName,
       templateCode: template.code,
       taskCount: tasks.length,
-      koloniCode: defaultKoloniCode,
-      wilayahCode: defaultWilayahCode,
+      koloniCode: koloni.code,
+      wilayahCode: koloni.wilayahCode || defaultWilayahCode,
     },
     tasks,
     odoo: envelope({
@@ -483,6 +490,7 @@ export function buildProjectFromTemplate(input: { semutId?: string; roleCode?: R
       roleCode,
       sourceApp: template.sourceApp,
       targetModel: 'project.project',
+      koloniCode: koloni.code,
       fields: {
         name: input.planName || template.projectName,
         x_namlah_template_code: template.code,
@@ -509,6 +517,7 @@ export function buildTaskStatusUpdate(taskId: string, input: { semutId?: string;
       roleCode,
       sourceApp: task.sourceApp,
       targetModel: 'project.task',
+      koloniCode: task.koloniCode,
       fields: {
         id: task.id,
         stage_id_external_id: `namlah_control.stage_${stage.code}`,
@@ -536,6 +545,7 @@ export function buildTaskProof(taskId: string, input: { semutId?: string; roleCo
       roleCode,
       sourceApp: task.sourceApp,
       targetModel: 'project.task.proof',
+      koloniCode: task.koloniCode,
       fields: {
         project_task_external_id: `namlah_task.${task.id}`,
         x_namlah_proof_status: input.proofStatus || 'submitted',

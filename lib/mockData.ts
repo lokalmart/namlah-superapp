@@ -200,10 +200,11 @@ export const activities: AntActivity[] = [
 ];
 
 export const storeItems: StoreItem[] = [
-  { id: 'beras', title: 'Beras Koloni 5kg', category: 'Sembako', price: 'Rp68.000', stock: '32 sak' },
-  { id: 'telur', title: 'Telur Ayam Lokal', category: 'Dapur', price: 'Rp29.000', stock: '18 kg' },
-  { id: 'sayur', title: 'Paket Sayur Pagi', category: 'Segar', price: 'Rp22.000', stock: '44 paket' },
-  { id: 'kopi', title: 'Kopi UMKM Cirebon', category: 'UMKM', price: 'Rp38.000', stock: '21 pouch' },
-  { id: 'kurir', title: 'Voucher Kurir Koloni', category: 'Layanan', price: 'Rp8.000', stock: 'aktif' },
-  { id: 'shu', title: 'Program Belanja Anggota', category: 'Koperasi', price: 'Dummy', stock: 'pilot' },
+  { id: 'beras', listingCode: 'listing_kjx_beras_5kg', title: 'Beras Koloni 5kg', category: 'Sembako', koloniCode: 'koloni_kejaksan_demo', ownerLabel: 'Koperasi Kejaksan', visibility: 'parent_scope', price: 'Rp68.000', stock: '32 sak' },
+  { id: 'telur', listingCode: 'listing_kjx_telur_lokal', title: 'Telur Ayam Lokal', category: 'Dapur', koloniCode: 'koloni_kejaksan_demo', ownerLabel: 'UMKM Bu Siti', visibility: 'private', price: 'Rp29.000', stock: '18 kg' },
+  { id: 'sayur', listingCode: 'listing_kdw_sayur_pagi', title: 'Paket Sayur Pagi', category: 'Segar', koloniCode: 'koloni_kedawung_demo', ownerLabel: 'Kebun Kedawung', visibility: 'parent_scope', price: 'Rp22.000', stock: '44 paket' },
+  { id: 'kopi-kjx', listingCode: 'listing_kjx_kopi_umkm', title: 'Kopi UMKM Cirebon', category: 'UMKM', koloniCode: 'koloni_kejaksan_demo', ownerLabel: 'UMKM Bu Siti', visibility: 'private', price: 'Rp38.000', stock: '21 pouch' },
+  { id: 'kopi-mandiri', listingCode: 'listing_mandiri_kopi_umkm', title: 'Kopi UMKM Cirebon', category: 'UMKM', koloniCode: 'koloni_kejaksan_mandiri_demo', ownerLabel: 'UMKM Pak Rafi', visibility: 'private', price: 'Rp41.000', stock: '15 pouch' },
+  { id: 'kurir', listingCode: 'listing_kjx_voucher_kurir', title: 'Voucher Kurir Koloni', category: 'Layanan', koloniCode: 'koloni_kejaksan_demo', ownerLabel: 'Runner Kejaksan', visibility: 'parent_scope', price: 'Rp8.000', stock: 'aktif' },
+  { id: 'shu', listingCode: 'listing_mega_program_belanja', title: 'Program Belanja Anggota', category: 'Koperasi', koloniCode: 'mega_cirebon_demo', ownerLabel: 'Mega Koloni Cirebon', visibility: 'public_catalog', price: 'Dummy', stock: 'pilot' },
 ];

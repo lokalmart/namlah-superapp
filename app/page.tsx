@@ -40,7 +40,7 @@ export default function Page() {
     }
   }, [account, activeTab]);
 
-  if (!ready) return <main className="loading-screen">Membuka sarang...</main>;
+  if (!ready) return <main className="loading-screen">Membuka koloni...</main>;
 
   if (!account) {
     return <AuthGate onAuthenticated={setAccount} />;

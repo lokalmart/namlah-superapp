@@ -1,21 +1,27 @@
 import type { OdooCustomField, PortalActor, RoleId, SemutAccount, SourceOfTruthRecord, StageSopGuide } from './types';
+import { defaultKoloniCode, getKoloniNode } from './koloni';
 
-export const tenantCode = 'ansor_kecamatan_demo';
-export const sarangCode = 'kedawung_demo';
+export const compatibilityKoloniCode = defaultKoloniCode;
 
 export function makePortalActor(account: SemutAccount): PortalActor {
   const cleanSemutId = account.semutId.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  const activeAssignment = account.roleAssignments.find((assignment) => assignment.roleId === account.activeRoleId) || account.roleAssignments[0];
+  const koloni = getKoloniNode(activeAssignment?.koloniCode);
   return {
     semutId: account.semutId,
     partnerExternalId: `namlah_partner.${cleanSemutId}`,
     userExternalId: `namlah_portal.${cleanSemutId}`,
     portalStatus: 'partner_only',
-    tenantCode,
-    sarangCode,
+    koloniCode: koloni.code,
+    wilayahCode: koloni.wilayahCode,
   };
 }
 
 export const customFields: OdooCustomField[] = [
+  { model: 'project.project', name: 'x_namlah_colony_id', label: 'Namlah Colony', fieldType: 'many2one', relation: 'namlah.colony', purpose: 'Field matang setelah addon Namlah tersedia; v1 tetap memakai x_namlah_koloni_code.' },
+  { model: 'project.project', name: 'x_namlah_parent_colony_id', label: 'Namlah Parent Colony', fieldType: 'many2one', relation: 'namlah.colony', purpose: 'Parent koloni bila project berada di scope child-parent yang approved.' },
+  { model: 'project.project', name: 'x_namlah_geo_area_id', label: 'Namlah Geo Area', fieldType: 'many2one', relation: 'namlah.geo.area', purpose: 'Wilayah geografis; tidak menjadi batas akses utama.' },
+  { model: 'project.project', name: 'x_namlah_visibility_policy', label: 'Namlah Visibility Policy', fieldType: 'selection', purpose: 'Policy koloni: exclusive atau inclusive.' },
   { model: 'project.project', name: 'x_namlah_koloni_code', label: 'Namlah Koloni Code', fieldType: 'char', purpose: 'Kode koloni yang menaungi dashboard Ratu Semut.' },
   { model: 'project.project', name: 'x_namlah_wilayah_code', label: 'Namlah Wilayah Code', fieldType: 'char', purpose: 'Wilayah terukur untuk dashboard lintas koloni.' },
   { model: 'project.project', name: 'x_namlah_template_code', label: 'Namlah Template Code', fieldType: 'char', purpose: 'Kode template asal project/task dibuat.' },
@@ -25,10 +31,12 @@ export const customFields: OdooCustomField[] = [
   { model: 'project.task', name: 'x_namlah_actor_partner_id', label: 'Namlah Actor Partner', fieldType: 'many2one', relation: 'res.partner', purpose: 'Partner portal user yang mewakili Semut-ID.' },
   { model: 'project.task', name: 'x_namlah_actor_user_id', label: 'Namlah Actor User', fieldType: 'many2one', relation: 'res.users', purpose: 'Portal user bila akses portal Odoo sudah aktif.' },
   { model: 'project.task', name: 'x_namlah_role_code', label: 'Namlah Role Code', fieldType: 'char', purpose: 'Role-ID aktif saat task/bukti dibuat.' },
+  { model: 'project.task', name: 'x_namlah_colony_id', label: 'Namlah Colony', fieldType: 'many2one', relation: 'namlah.colony', purpose: 'Relasi matang ke koloni setelah addon Namlah tersedia.' },
+  { model: 'project.task', name: 'x_namlah_parent_colony_id', label: 'Namlah Parent Colony', fieldType: 'many2one', relation: 'namlah.colony', purpose: 'Parent koloni approved untuk scope Ratu parent.' },
+  { model: 'project.task', name: 'x_namlah_geo_area_id', label: 'Namlah Geo Area', fieldType: 'many2one', relation: 'namlah.geo.area', purpose: 'Wilayah geografis; dua koloni bisa berbagi area yang sama.' },
+  { model: 'project.task', name: 'x_namlah_visibility_policy', label: 'Namlah Visibility Policy', fieldType: 'selection', purpose: 'Policy task/listing mengikuti konfigurasi koloni.' },
   { model: 'project.task', name: 'x_namlah_koloni_code', label: 'Namlah Koloni Code', fieldType: 'char', purpose: 'Koloni/project area pemilik task.' },
   { model: 'project.task', name: 'x_namlah_wilayah_code', label: 'Namlah Wilayah Code', fieldType: 'char', purpose: 'Wilayah terukur untuk filtering dashboard.' },
-  { model: 'project.task', name: 'x_namlah_tenant_code', label: 'Namlah Tenant Code', fieldType: 'char', purpose: 'Komunitas/tenant, misalnya ansor_kecamatan_demo.' },
-  { model: 'project.task', name: 'x_namlah_sarang_code', label: 'Namlah Sarang Code', fieldType: 'char', purpose: 'Wilayah/unit kerja komunitas.' },
   { model: 'project.task', name: 'x_namlah_source_app', label: 'Namlah Source App', fieldType: 'char', purpose: 'Superapp atau role app asal record.' },
   { model: 'project.task', name: 'x_namlah_template_code', label: 'Namlah Template Code', fieldType: 'char', purpose: 'Template plan asal task dibuat.' },
   { model: 'project.task', name: 'x_namlah_plan_code', label: 'Namlah Plan Code', fieldType: 'char', purpose: 'Instance rencana/template untuk audit dan dashboard.' },
@@ -39,7 +47,9 @@ export const customFields: OdooCustomField[] = [
   { model: 'sale.order', name: 'x_namlah_semut_id', label: 'Namlah Semut-ID', fieldType: 'char', purpose: 'Semut-ID kasir/pembuat transaksi.' },
   { model: 'sale.order', name: 'x_namlah_cashier_partner_id', label: 'Namlah Cashier Partner', fieldType: 'many2one', relation: 'res.partner', purpose: 'Partner portal kasir.' },
   { model: 'sale.order', name: 'x_namlah_role_code', label: 'Namlah Role Code', fieldType: 'char', purpose: 'Role aktif, misalnya kasir.' },
-  { model: 'sale.order', name: 'x_namlah_tenant_code', label: 'Namlah Tenant Code', fieldType: 'char', purpose: 'Tenant komunitas.' },
+  { model: 'sale.order', name: 'x_namlah_colony_id', label: 'Namlah Colony', fieldType: 'many2one', relation: 'namlah.colony', purpose: 'Relasi matang ke koloni pemilik order.' },
+  { model: 'sale.order', name: 'x_namlah_geo_area_id', label: 'Namlah Geo Area', fieldType: 'many2one', relation: 'namlah.geo.area', purpose: 'Wilayah geografis untuk analitik non-akses.' },
+  { model: 'sale.order', name: 'x_namlah_visibility_policy', label: 'Namlah Visibility Policy', fieldType: 'selection', purpose: 'Policy sharing order/report ringkas.' },
   { model: 'sale.order', name: 'x_namlah_project_id', label: 'Namlah Project', fieldType: 'many2one', relation: 'project.project', purpose: 'Project kasir/program yang menaungi transaksi.' },
   { model: 'sale.order', name: 'x_namlah_task_id', label: 'Namlah Task/Shift', fieldType: 'many2one', relation: 'project.task', purpose: 'Task shift/audit yang menaungi transaksi.' },
   { model: 'sale.order', name: 'x_namlah_outlet_code', label: 'Namlah Outlet Code', fieldType: 'char', purpose: 'Kode posko/outlet/kasir.' },
@@ -85,8 +95,8 @@ export const stageSopGuides: StageSopGuide[] = [
     sopArticleExternalId: 'namlah_sop.validasi_data_komunitas',
     stepCode: 'ADMIN_VALIDATE',
     requiredProof: 'catatan admin',
-    checklist: ['Cek actor Semut-ID', 'Cek sarang/unit', 'Cek bukti wajib'],
-    mobileHint: 'Admin memutuskan apakah task siap lanjut atau perlu revisi.',
+    checklist: ['Cek actor Semut-ID', 'Cek koloni/unit', 'Cek bukti wajib'],
+    mobileHint: 'Ratu Koloni memutuskan apakah task siap lanjut atau perlu revisi.',
     nextActionLabel: 'Validasi task',
   },
   {
@@ -152,8 +162,8 @@ export function getSourceOfTruth(roleId: RoleId): SourceOfTruthRecord {
     id: `source-${roleId}`,
     roleId,
     model,
-    title: isKasir ? 'Sale Order kasir terikat shift task' : 'Project Task misi komunitas',
-    project: isKasir ? 'Kasir GP Ansor Kecamatan' : 'Misi Komunitas Ansor Kecamatan',
+    title: isKasir ? 'Sale Order kasir terikat shift task' : 'Project Task misi koloni',
+    project: isKasir ? 'Kasir Koloni Kejaksan' : 'Misi Koloni Kejaksan',
     stage: stageGuide.stage,
     task: isKasir ? 'Shift Kasir Posko A / Audit Harian' : `${stageGuide.stage} / ${roleId}`,
     saleOrder: isKasir ? 'SO-KASIR-POSKO-A-0007' : undefined,
@@ -162,8 +172,8 @@ export function getSourceOfTruth(roleId: RoleId): SourceOfTruthRecord {
     fields: [
       { label: 'Actor', value: 'x_namlah_semut_id' },
       { label: 'Role', value: 'x_namlah_role_code' },
-      { label: 'Tenant', value: 'x_namlah_tenant_code' },
-      { label: 'Sarang', value: 'x_namlah_sarang_code' },
+      { label: 'Koloni', value: 'x_namlah_koloni_code' },
+      { label: 'Wilayah', value: 'x_namlah_wilayah_code' },
       { label: 'SOP', value: 'x_namlah_sop_article_id' },
     ],
   };
