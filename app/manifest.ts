@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Namlah Superapp',
     short_name: 'Namlah',
-    description: 'Showcase superapp Namlah untuk Semut-ID, role, map koloni, gudang, scan, dan akun.',
+    description: 'Namlah Superapp untuk Semut-ID, role, map koloni, transaksi, scan, dan akun Odoo.',
     start_url: '/',
     scope: '/',
     display: 'standalone',

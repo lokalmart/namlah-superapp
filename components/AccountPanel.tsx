@@ -2,9 +2,9 @@ import { Crown, Gamepad2, LogOut, Mail, Phone, Plus, ShieldCheck, Sparkles, User
 import { useState } from 'react';
 import { PinPad } from './PinPad';
 import { defaultKoloniCode, describeKoloniPolicy, getJoinableKoloniNodes, getKoloniNode, getKoloniScope } from '../lib/koloni';
-import { roleConfigs, roleOrder } from '../lib/mockData';
+import { roleConfigs, roleOrder } from '../lib/roleConfig';
 import { getCustomFieldsByModel, makePortalActor } from '../lib/odooArchitecture';
-import { activateRole, clearAccount, getActiveRoleAssignment, getRoleAssignment, getRoleIds, registerRole, setExperienceTheme, verifyRolePinDemo } from '../lib/storage';
+import { activateRole, clearAccount, getActiveRoleAssignment, getRoleAssignment, getRoleIds, registerRole, setExperienceTheme, verifyRolePinLocal } from '../lib/storage';
 import type { ExperienceTheme, RoleConfig, RoleId, SemutAccount } from '../lib/types';
 
 type AccountPanelProps = {
@@ -29,6 +29,7 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
   const [rolePin, setRolePin] = useState('');
   const [roleKoloniCode, setRoleKoloniCode] = useState(activeAssignment?.koloniCode || defaultKoloniCode);
   const [roleMessage, setRoleMessage] = useState('');
+  const [roleSubmitting, setRoleSubmitting] = useState(false);
 
   function selectRole(roleId: RoleId) {
     if (account.activeRoleId === roleId) return;
@@ -49,7 +50,7 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
   function submitSwitchRole() {
     if (!switchRoleId) return;
     const assignment = getRoleAssignment(account, switchRoleId);
-    if (!verifyRolePinDemo(rolePin, assignment)) {
+    if (!verifyRolePinLocal(rolePin, assignment)) {
       setRoleMessage('PIN role belum cocok.');
       setRolePin('');
       return;
@@ -60,19 +61,40 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
     setRoleMessage('');
   }
 
-  function submitRegisterRole() {
-    if (!registerRoleId || rolePin.length !== 4) return;
-    onChange(registerRole(account, registerRoleId, rolePin, roleKoloniCode));
-    setRegisterRoleId(null);
-    setRolePin('');
-    setRoleMessage('');
+  async function submitRegisterRole() {
+    if (!registerRoleId || rolePin.length !== 4 || roleSubmitting) return;
+    setRoleSubmitting(true);
+    setRoleMessage('Mengirim pendaftaran role ke Odoo...');
+    try {
+      const response = await fetch('/api/roles/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          semutId: account.semutId,
+          roleCode: registerRoleId,
+          koloniCode: roleKoloniCode,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as { bridge?: { message?: string }; error?: string } | null;
+      if (!response.ok) {
+        throw new Error(payload?.bridge?.message || payload?.error || 'Role belum masuk Odoo.');
+      }
+      onChange(registerRole(account, registerRoleId, rolePin, roleKoloniCode));
+      setRegisterRoleId(null);
+      setRolePin('');
+      setRoleMessage('');
+    } catch (event) {
+      setRoleMessage(event instanceof Error ? event.message : 'Role belum masuk Odoo.');
+    } finally {
+      setRoleSubmitting(false);
+    }
   }
 
   function selectTheme(experienceTheme: ExperienceTheme) {
     onChange(setExperienceTheme(account, experienceTheme));
   }
 
-  function resetDemo() {
+  function resetLocalSession() {
     clearAccount();
     onLogout();
   }
@@ -121,9 +143,9 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
               <LogOut size={17} />
               Kunci App
             </button>
-            <button className="icon-action" type="button" onClick={resetDemo} style={{ marginTop: 10 }}>
+            <button className="icon-action" type="button" onClick={resetLocalSession} style={{ marginTop: 10 }}>
               <ShieldCheck size={17} />
-              Reset Demo
+              Reset sesi perangkat
             </button>
           </aside>
 
@@ -141,14 +163,21 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
             <h3>{activeKoloniPolicy.primaryRatuName}</h3>
             <p className="muted">{activeKoloni.name} / {activeKoloniPolicy.primaryRatuSemutId}</p>
             <div className="contact-action-row">
-              <a href={`tel:${activeKoloniPolicy.primaryRatuPhone}`}>
-                <Phone size={16} />
-                {activeKoloniPolicy.primaryRatuPhone}
-              </a>
-              <a href={`mailto:${activeKoloniPolicy.primaryRatuEmail}`}>
-                <Mail size={16} />
-                {activeKoloniPolicy.primaryRatuEmail}
-              </a>
+              {activeKoloniPolicy.primaryRatuPhone ? (
+                <a href={`tel:${activeKoloniPolicy.primaryRatuPhone}`}>
+                  <Phone size={16} />
+                  {activeKoloniPolicy.primaryRatuPhone}
+                </a>
+              ) : null}
+              {activeKoloniPolicy.primaryRatuEmail ? (
+                <a href={`mailto:${activeKoloniPolicy.primaryRatuEmail}`}>
+                  <Mail size={16} />
+                  {activeKoloniPolicy.primaryRatuEmail}
+                </a>
+              ) : null}
+              {!activeKoloniPolicy.primaryRatuPhone && !activeKoloniPolicy.primaryRatuEmail && (
+                <p className="muted" style={{ margin: 0 }}>Kontak Ratu menunggu data koloni Odoo.</p>
+              )}
             </div>
             <div className="portal-map compact">
               <span>koloni</span>
@@ -156,7 +185,7 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
               <span>wilayah</span>
               <strong>{activeKoloni.geoAreaName}</strong>
               <span>sumber kontak</span>
-              <strong>konfigurasi koloni lokal</strong>
+              <strong>Odoo / konfigurasi koloni</strong>
             </div>
           </div>
 
@@ -224,8 +253,8 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
                   value={rolePin}
                   onChange={(next) => { setRoleMessage(''); setRolePin(next); }}
                   onSubmit={switchRoleId ? submitSwitchRole : submitRegisterRole}
-                  submitLabel={switchRoleId ? 'Buka role' : 'Simpan PIN role'}
-                  disabled={Boolean(registerRoleId && rolePin.length !== 4)}
+                  submitLabel={switchRoleId ? 'Buka role' : roleSubmitting ? 'Mendaftarkan...' : 'Daftar role ke Odoo'}
+                  disabled={Boolean(registerRoleId && (rolePin.length !== 4 || roleSubmitting))}
                 />
                 {roleMessage && <p className="muted" style={{ margin: '10px 0 0' }}>{roleMessage}</p>}
               </div>

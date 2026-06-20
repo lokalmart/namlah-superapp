@@ -22,12 +22,7 @@ This document is the working blueprint for using Odoo Project, Sales, Milestones
 ## Implemented V1 Endpoints
 
 - `POST /api/semut/register`
-- `GET /api/colonies`
-- `POST /api/colonies`
-- `POST /api/colonies/:koloniCode/join`
-- `POST /api/colonies/:koloniCode/parent-request`
-- `POST /api/colonies/:koloniCode/parent-approval`
-- `PATCH /api/colonies/:koloniCode/policy`
+- `POST /api/cashier/orders`
 - `POST /api/roles/apply`
 - `POST /api/umkm/onboard`
 - `POST /api/projects/from-template`
@@ -36,7 +31,16 @@ This document is the working blueprint for using Odoo Project, Sales, Milestones
 - `GET /api/dashboard/koloni`
 - `GET /api/ratu/dashboard`
 
-These endpoints currently return deterministic demo payloads and Odoo write envelopes. Replace the envelope executor later with the real Odoo adapter without changing the role apps.
+These endpoints are real-only. If Odoo is not configured or write access is locked, they return an explicit error and do not create replacement business data.
+
+Koloni routes exist as real-only stubs until the Odoo koloni/membership adapter is connected:
+
+- `GET /api/colonies`
+- `POST /api/colonies`
+- `POST /api/colonies/:koloniCode/join`
+- `POST /api/colonies/:koloniCode/parent-request`
+- `POST /api/colonies/:koloniCode/parent-approval`
+- `PATCH /api/colonies/:koloniCode/policy`
 
 ## Ratu Semut Views
 
@@ -48,6 +52,8 @@ These endpoints currently return deterministic demo payloads and Odoo write enve
 ## Template Set
 
 - `UMKM Onboarding Basic`
+- `Kasir Transaksi Koloni`
+- `Belanja Koloni`
 - `UMKM Promotion Sprint`
 - `Survey Lokasi`
 - `Setup Kasir`
@@ -89,6 +95,7 @@ Donation program:
 ## Acceptance Checks
 
 - A UMKM owner can trigger onboarding and receive task instances from the template.
-- Ratu Semut can view cross-role Kanban summaries.
+- A cashier can create a `sale.order` linked to the cashier project/task for the active koloni.
+- Ratu Semut can view cross-role Kanban summaries from Odoo live.
 - Role dashboards only expose role-appropriate tasks unless the active role is Ratu Semut or Koperasi.
-- Every API response includes an Odoo envelope that preserves the true Semut-ID actor even though Odoo will be written by the service user.
+- Every write response preserves the true Semut-ID actor even though Odoo is written by the service user.

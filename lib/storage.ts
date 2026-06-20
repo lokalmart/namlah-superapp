@@ -1,21 +1,21 @@
-import { roleConfigs } from './mockData';
+import { roleConfigs } from './roleConfig';
 import { defaultKoloniCode, defaultWilayahCode, getKoloniNode } from './koloni';
 import { makePortalIdentity } from './portalIdentity';
 import type { ExperienceTheme, RoleAssignment, RoleId, SemutAccount } from './types';
 
 const ACCOUNT_KEY = 'namlah_superapp_semut_account';
 
-export function createPinHashDemo(pin: string) {
-  return window.btoa(`${pin.split('').reverse().join('')}:namlah-demo`);
+export function createPinHashLocal(pin: string) {
+  return window.btoa(`${pin.split('').reverse().join('')}:namlah-local-session`);
 }
 
-export function verifyPinDemo(pin: string, hash: string) {
-  return createPinHashDemo(pin) === hash;
+export function verifyPinLocal(pin: string, hash: string) {
+  return createPinHashLocal(pin) === hash;
 }
 
-export function verifyRolePinDemo(pin: string, assignment?: RoleAssignment) {
+export function verifyRolePinLocal(pin: string, assignment?: RoleAssignment) {
   if (!assignment || assignment.status !== 'active') return false;
-  return verifyPinDemo(pin, assignment.rolePinHashDemo);
+  return verifyPinLocal(pin, assignment.rolePinHashLocal);
 }
 
 export function makeSemutId(name: string) {
@@ -29,13 +29,14 @@ export function loadAccount(): SemutAccount | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as SemutAccount & { roles?: RoleId[] };
-    if (!parsed.semutId || !parsed.pinHashDemo) return null;
-    const fallbackRoles: RoleId[] = parsed.roles?.length ? parsed.roles : ['member'];
+    if (!parsed.semutId || !parsed.pinHashLocal) return null;
+    const restoredRoleIds: RoleId[] = parsed.roles?.length ? parsed.roles : ['member'];
     const roleAssignments = parsed.roleAssignments?.length
       ? parsed.roleAssignments
-      : fallbackRoles.map((roleId) => makeRoleAssignment(roleId, parsed.pinHashDemo));
+      : restoredRoleIds.map((roleId) => makeRoleAssignment(roleId, parsed.pinHashLocal));
     const cleanAssignments = roleAssignments
       .filter((assignment) => roleConfigs[assignment.roleId])
+      .filter((assignment) => assignment.rolePinHashLocal)
       .map((assignment) => ({
         ...assignment,
         status: assignment.status || 'active',
@@ -52,7 +53,7 @@ export function loadAccount(): SemutAccount | null {
       portalLogin: parsed.portalLogin || portal.portalLogin,
       portalStatus: parsed.portalStatus || portal.portalStatus,
       emailVerificationStatus: parsed.emailVerificationStatus || portal.emailVerificationStatus,
-      roleAssignments: cleanAssignments.length ? cleanAssignments : [makeRoleAssignment('member', parsed.pinHashDemo)],
+      roleAssignments: cleanAssignments.length ? cleanAssignments : [makeRoleAssignment('member', parsed.pinHashLocal)],
       activeRoleId,
       experienceTheme: parsed.experienceTheme || 'game',
     };
@@ -69,11 +70,11 @@ export function clearAccount() {
   window.localStorage.removeItem(ACCOUNT_KEY);
 }
 
-export function makeRoleAssignment(roleId: RoleId, rolePinHashDemo: string, koloniCode = defaultKoloniCode): RoleAssignment {
+export function makeRoleAssignment(roleId: RoleId, rolePinHashLocal: string, koloniCode = defaultKoloniCode): RoleAssignment {
   const koloni = getKoloniNode(koloniCode);
   return {
     roleId,
-    rolePinHashDemo,
+    rolePinHashLocal,
     status: 'active',
     koloniCode: koloni.code,
     wilayahCode: koloni.wilayahCode || defaultWilayahCode,
@@ -98,8 +99,8 @@ export function getRoleAssignment(account: SemutAccount, roleId: RoleId) {
 }
 
 export function registerRole(account: SemutAccount, roleId: RoleId, pin: string, koloniCode = defaultKoloniCode): SemutAccount {
-  const rolePinHashDemo = createPinHashDemo(pin);
-  const nextAssignment = makeRoleAssignment(roleId, rolePinHashDemo, koloniCode);
+  const rolePinHashLocal = createPinHashLocal(pin);
+  const nextAssignment = makeRoleAssignment(roleId, rolePinHashLocal, koloniCode);
   const assignments = getRoleAssignments(account).filter((assignment) => assignment.roleId !== roleId);
   return {
     ...account,

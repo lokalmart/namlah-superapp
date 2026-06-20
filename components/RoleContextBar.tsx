@@ -1,6 +1,6 @@
 import { Crown, Database, MapPinned, Plus, Settings, ShieldCheck, Workflow } from 'lucide-react';
 import { getKoloniNode } from '../lib/koloni';
-import { roleConfigs, roleOrder } from '../lib/mockData';
+import { roleConfigs, roleOrder } from '../lib/roleConfig';
 import { getSourceOfTruth } from '../lib/odooArchitecture';
 import { activateRole, getActiveRoleAssignment, getRoleIds } from '../lib/storage';
 import type { AppTab, RoleConfig, SemutAccount } from '../lib/types';

@@ -4,7 +4,7 @@ import { ServiceWorkerRegister } from '../components/ServiceWorkerRegister';
 
 export const metadata: Metadata = {
   title: 'Namlah Superapp',
-  description: 'Dummy frontend showcase untuk superapp Namlah.',
+  description: 'Namlah Superapp untuk Semut-ID, role koloni, project task, dan transaksi Odoo.',
   applicationName: 'Namlah Superapp',
   appleWebApp: {
     capable: true,

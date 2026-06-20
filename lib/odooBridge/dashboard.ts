@@ -1,5 +1,5 @@
 import { getKoloniScope } from '../koloni';
-import { roleConfigs } from '../mockData';
+import { roleConfigs } from '../roleConfig';
 import { controlStages, planTemplates } from '../projectControlTower';
 import type {
   NamlahAuditEvent,
@@ -20,6 +20,8 @@ import { createOdooBridgeClient, type OdooBridgeClient, type OdooDomain } from '
 
 const roleIds: RoleId[] = ['member', 'surveyor', 'kurir', 'kasir', 'umkm', 'admin', 'koperasi'];
 const templateCodes: NamlahProjectTemplateCode[] = [
+  'cashier_transaction_flow',
+  'member_shopping_flow',
   'umkm_onboarding_basic',
   'umkm_promotion_sprint',
   'survey_lokasi',
@@ -95,8 +97,8 @@ function relationId(value: unknown) {
   return undefined;
 }
 
-function text(value: unknown, fallback = '') {
-  if (value === false || value === null || value === undefined) return fallback;
+function text(value: unknown, emptyText = '') {
+  if (value === false || value === null || value === undefined) return emptyText;
   return String(value);
 }
 

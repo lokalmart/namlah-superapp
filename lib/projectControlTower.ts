@@ -1,21 +1,14 @@
-import { roleConfigs } from './mockData';
-import { defaultKoloniCode, defaultWilayahCode, getKoloniNode, getKoloniScope } from './koloni';
+import { roleConfigs } from './roleConfig';
+import { defaultKoloniCode, defaultWilayahCode, getKoloniNode } from './koloni';
 import { makePortalIdentity } from './portalIdentity';
 import type {
-  NamlahAuditEvent,
-  NamlahBalanceSheetLine,
   NamlahControlStage,
   NamlahControlTask,
-  NamlahDashboardMetric,
   NamlahKanbanFlow,
-  NamlahKoloniDashboard,
-  NamlahMilestoneRow,
   NamlahMobileStatus,
   NamlahOdooEnvelope,
   NamlahPlanTemplate,
   NamlahProjectTemplateCode,
-  NamlahRatuView,
-  NamlahSalesOrder,
   NamlahTaskBlueprint,
   NamlahTaskProofStatus,
   RoleId,
@@ -48,6 +41,38 @@ export const controlStages: NamlahControlStage[] = [
 ];
 
 export const planTemplates: NamlahPlanTemplate[] = [
+  {
+    code: 'cashier_transaction_flow',
+    title: 'Kasir Transaksi Koloni',
+    category: 'Cashier',
+    sourceApp: 'namlah-kasir',
+    roleScope: ['kasir', 'admin'],
+    projectName: 'Kasir Koloni',
+    description: 'Template project kasir: satu task kasir per Semut-ID, semua sale.order transaksi ditautkan ke task kasir itu.',
+    defaultFlow: 'umkm_promotion',
+    impactMetric: 'Transaksi kasir',
+    tasks: [
+      { code: 'cashier_shift_task', title: 'Task Kasir Semut-ID', roleCode: 'kasir', stageCode: 'promo_diskon_aktif', description: 'Task induk kasir untuk smart button transaksi dan audit shift.', proof: 'sale.order linked' },
+      { code: 'cashier_audit_task', title: 'Audit transaksi kasir', roleCode: 'admin', stageCode: 'promo_selesai', description: 'Ratu Koloni memantau transaksi yang masuk dari POS kasir.', proof: 'rekap transaksi' },
+    ],
+  },
+  {
+    code: 'member_shopping_flow',
+    title: 'Belanja Koloni',
+    category: 'Commerce',
+    sourceApp: 'namlah-member',
+    roleScope: ['member', 'kasir', 'kurir', 'admin'],
+    projectName: 'Belanja Koloni',
+    description: 'Template belanja: order member, proses kasir, dan pengiriman kurir berada dalam project koloni yang sama.',
+    defaultFlow: 'donation_program',
+    impactMetric: 'Order belanja selesai',
+    tasks: [
+      { code: 'shopping_order', title: 'Order belanja member', roleCode: 'member', stageCode: 'donasi_dipilih_donatur', description: 'Member membuat intent belanja pada koloni.', proof: 'order intent' },
+      { code: 'shopping_cashier', title: 'Proses kasir', roleCode: 'kasir', stageCode: 'donasi_menunggu_dana', description: 'Kasir mengubah intent belanja menjadi sale.order.', proof: 'sale.order' },
+      { code: 'shopping_delivery', title: 'Pengiriman belanja', roleCode: 'kurir', stageCode: 'donasi_eksekusi', description: 'Kurir mengirim ke kontak pengiriman yang diisi saat order.', proof: 'foto + catatan' },
+      { code: 'shopping_report', title: 'Laporan belanja', roleCode: 'admin', stageCode: 'donasi_laporan', description: 'Ratu memantau nilai transaksi dan status kirim.', proof: 'laporan order' },
+    ],
+  },
   {
     code: 'umkm_onboarding_basic',
     title: 'UMKM Onboarding Basic',
@@ -203,159 +228,8 @@ function flattenBlueprint(template: NamlahPlanTemplate, semutId: string, seed: s
   return tasks;
 }
 
-export const controlTasks: NamlahControlTask[] = [
-  ...flattenBlueprint(planTemplates[0], 'SMT-UMKM-BUSITI', 'bu_siti', 'Onboarding UMKM Bu Siti'),
-  ...flattenBlueprint(planTemplates[1], 'SMT-UMKM-BUSITI', 'promo_keripik'),
-  ...flattenBlueprint(planTemplates[5], 'SMT-DONATUR-001', 'paket_foto_produk'),
-].map((task, index) => {
-  const stageOverrides = ['umkm_lengkapi_profil', 'umkm_data_produk', 'umkm_validasi_survey', 'promo_disebar', 'donasi_eksekusi', 'donasi_laporan'];
-  const override = stageOverrides[index % stageOverrides.length];
-  const stage = task.parentId ? stageByCode(task.stageCode) : stageByCode(override);
-  const proofStatus: NamlahTaskProofStatus = index % 5 === 0 ? 'approved' : index % 3 === 0 ? 'submitted' : task.proofStatus;
-  const koloniCode = index % 3 === 0 ? 'koloni_kejaksan_demo' : index % 3 === 1 ? 'koloni_kedawung_demo' : 'koloni_harjamukti_demo';
-  const wilayahCode = index % 3 === 0 ? 'wilayah_kecamatan_kejaksan_demo' : index % 3 === 1 ? 'wilayah_kecamatan_kedawung_demo' : 'wilayah_kecamatan_harjamukti_demo';
-  return {
-    ...task,
-    koloniCode,
-    wilayahCode,
-    stageCode: stage.code,
-    stageLabel: stage.label,
-    proofStatus,
-    isLate: index === 4 || index === 11,
-    needsValidation: task.needsValidation || proofStatus === 'submitted',
-  };
-});
-
-export const salesOrders: NamlahSalesOrder[] = [
-  { id: 'so_001', orderNumber: 'SO-KJX-0001', customer: 'Member Kejaksan A', sourceApp: 'namlah-kasir', amount: 'Rp428.000', status: 'Sale Order', linkedTask: 'Onboarding UMKM Bu Siti', date: '2026-06-19', koloniCode: 'koloni_kejaksan_demo' },
-  { id: 'so_002', orderNumber: 'SO-KJX-0002', customer: 'Warung Bu Siti', sourceApp: 'namlah-umkm', amount: 'Rp215.000', status: 'Invoice Draft', linkedTask: 'Promo Keripik', date: '2026-06-19', koloniCode: 'koloni_kejaksan_demo' },
-  { id: 'so_003', orderNumber: 'SO-KDW-0001', customer: 'Member Kedawung B', sourceApp: 'namlah-kasir', amount: 'Rp612.000', status: 'Delivered', linkedTask: 'Delivery Koloni', date: '2026-06-18', koloniCode: 'koloni_kedawung_demo' },
-  { id: 'so_004', orderNumber: 'SO-HJM-0001', customer: 'Koperasi Harjamukti', sourceApp: 'namlah-koperasi', amount: 'Rp1.240.000', status: 'Confirmed', linkedTask: 'Program Donasi', date: '2026-06-18', koloniCode: 'koloni_harjamukti_demo' },
-];
-
-export const milestones: NamlahMilestoneRow[] = [
-  { id: 'ms_001', milestone: 'UMKM Siap Jual', project: 'Onboarding UMKM Koloni', deadline: '2026-06-24', reached: false, progress: '62%', koloniCode: 'koloni_kejaksan_demo' },
-  { id: 'ms_002', milestone: 'Promosi Pertama', project: 'Promotion Sprint Koloni', deadline: '2026-06-25', reached: false, progress: '48%', koloniCode: 'koloni_kejaksan_demo' },
-  { id: 'ms_003', milestone: 'Delivery Stabil', project: 'Delivery Koloni', deadline: '2026-06-26', reached: false, progress: '71%', koloniCode: 'koloni_kedawung_demo' },
-  { id: 'ms_004', milestone: 'Laporan Dampak Donasi', project: 'Program Donasi Koloni', deadline: '2026-06-30', reached: false, progress: '36%', koloniCode: 'koloni_harjamukti_demo' },
-];
-
-export const balanceSheetLines: NamlahBalanceSheetLine[] = [
-  { id: 'bs_001', accountGroup: 'Assets / Kas Koloni', debit: 'Rp5.400.000', credit: 'Rp0', balance: 'Rp5.400.000', period: '2026-06', koloniCode: 'koloni_kejaksan_demo' },
-  { id: 'bs_002', accountGroup: 'Assets / Piutang UMKM', debit: 'Rp1.275.000', credit: 'Rp0', balance: 'Rp1.275.000', period: '2026-06', koloniCode: 'koloni_kejaksan_demo' },
-  { id: 'bs_003', accountGroup: 'Liabilities / Dana Program', debit: 'Rp0', credit: 'Rp2.100.000', balance: '-Rp2.100.000', period: '2026-06', koloniCode: 'koloni_kedawung_demo' },
-  { id: 'bs_004', accountGroup: 'Equity / SHU Simulasi', debit: 'Rp0', credit: 'Rp3.800.000', balance: '-Rp3.800.000', period: '2026-06', koloniCode: 'koloni_harjamukti_demo' },
-];
-
-export const auditTrail: NamlahAuditEvent[] = [
-  {
-    id: 'audit_001',
-    actorSemutId: 'SMT-UMKM-BUSITI',
-    roleCode: 'umkm',
-    actionType: 'umkm.onboard',
-    targetModel: 'project.task',
-    targetExternalId: 'namlah_task.onboarding_umkm_bu_siti',
-    sourceApp: 'namlah-umkm',
-    summary: 'Task onboarding dibuat dari template UMKM Onboarding Basic.',
-    timestamp: '2026-06-19T10:00:00+07:00',
-  },
-  {
-    id: 'audit_002',
-    actorSemutId: 'SMT-SURVEYOR-007',
-    roleCode: 'surveyor',
-    actionType: 'task.proof.submit',
-    targetModel: 'project.task.proof',
-    targetExternalId: 'namlah_proof.foto_toko_bu_siti',
-    sourceApp: 'namlah-surveyor',
-    summary: 'Foto toko dan lokasi dikirim untuk validasi admin koloni.',
-    timestamp: '2026-06-19T10:12:00+07:00',
-  },
-  {
-    id: 'audit_003',
-    actorSemutId: 'SMT-DONATUR-001',
-    roleCode: 'member',
-    actionType: 'donation.template.select',
-    targetModel: 'project.project',
-    targetExternalId: 'namlah_project.program_donasi_paket_foto_produk',
-    sourceApp: 'namlah-superapp',
-    summary: 'Donatur memilih template Program Donasi / Eksekusi Rencana.',
-    timestamp: '2026-06-19T10:24:00+07:00',
-  },
-];
-
-export function filterTasksForRole(tasks: NamlahControlTask[], roleId?: RoleId) {
-  if (!roleId || roleId === 'admin' || roleId === 'koperasi') return tasks;
-  return tasks.filter((task) => task.roleCode === roleId || task.stageCode.includes(roleId));
-}
-
-function filterByKoloniScope<T extends { koloniCode: string }>(rows: T[], koloniCode?: string) {
-  const scope = getKoloniScope(koloniCode);
-  return rows.filter((row) => scope.scopeKoloniCodes.includes(row.koloniCode));
-}
-
-function countByStage(tasks: NamlahControlTask[]) {
-  return controlStages
-    .map((stage) => ({ stageCode: stage.code, label: stage.label, count: tasks.filter((task) => task.stageCode === stage.code).length }))
-    .filter((item) => item.count > 0);
-}
-
-function countByRole(tasks: NamlahControlTask[]) {
-  return Object.values(roleConfigs)
-    .map((role) => ({ roleCode: role.id, label: role.label, count: tasks.filter((task) => task.roleCode === role.id).length }))
-    .filter((item) => item.count > 0);
-}
-
-function templateCounters(tasks: NamlahControlTask[]) {
-  return planTemplates
-    .map((template) => ({ code: template.code, title: template.title, activeCount: tasks.filter((task) => task.templateCode === template.code).length }))
-    .filter((item) => item.activeCount > 0)
-    .sort((a, b) => b.activeCount - a.activeCount);
-}
-
-function buildMetrics(tasks: NamlahControlTask[]): NamlahDashboardMetric[] {
-  const validationCount = tasks.filter((task) => task.needsValidation).length;
-  const lateCount = tasks.filter((task) => task.isLate).length;
-  const activeTemplateCount = new Set(tasks.map((task) => task.templateCode)).size;
-  return [
-    { label: 'Task aktif', value: String(tasks.length), detail: 'project.task Ratu Semut' },
-    { label: 'Butuh validasi', value: String(validationCount), detail: 'proof submitted atau stage validasi' },
-    { label: 'Terlambat', value: String(lateCount), detail: 'perlu eskalasi Ratu Semut' },
-    { label: 'Template aktif', value: String(activeTemplateCount), detail: 'rencana yang sedang dieksekusi' },
-  ];
-}
-
-export function buildKoloniDashboard(roleId?: RoleId, koloniCode = defaultKoloniCode, activeView: NamlahRatuView = 'kanban'): NamlahKoloniDashboard {
-  const scope = getKoloniScope(koloniCode);
-  const tasks = filterTasksForRole(filterByKoloniScope(controlTasks, koloniCode), roleId);
-  return {
-    koloniCode: scope.node.code,
-    wilayahCode: scope.node.wilayahCode || defaultWilayahCode,
-    generatedAt: '2026-06-19T10:30:00+07:00',
-    activeView,
-    metrics: buildMetrics(tasks),
-    stages: controlStages,
-    templates: planTemplates,
-    taskByStage: countByStage(tasks),
-    taskByRole: countByRole(tasks),
-    topTemplates: templateCounters(tasks),
-    activeUmkm: new Set(tasks.filter((task) => task.templateCode === 'umkm_onboarding_basic').map((task) => task.semutId)).size,
-    donationPrograms: tasks.filter((task) => task.templateCode === 'donation_execution_plan').length,
-    lateTasks: tasks.filter((task) => task.isLate).slice(0, 6),
-    validationTasks: tasks.filter((task) => task.needsValidation).slice(0, 6),
-    tasks,
-    salesOrders: filterByKoloniScope(salesOrders, koloniCode),
-    milestones: filterByKoloniScope(milestones, koloniCode),
-    balanceSheetLines: filterByKoloniScope(balanceSheetLines, koloniCode),
-    auditTrail: auditTrail.filter((event) => !roleId || roleId === 'admin' || roleId === 'koperasi' || event.roleCode === roleId),
-  };
-}
-
 export function getTemplate(code: string) {
   return planTemplates.find((template) => template.code === code) || planTemplates[0];
-}
-
-export function getTask(taskId: string) {
-  return controlTasks.find((task) => task.id === taskId) || controlTasks[0];
 }
 
 function envelope(params: {
@@ -387,14 +261,14 @@ function envelope(params: {
 }
 
 export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCode?: string }) {
-  const semutId = input.semutId || 'SMT-DEMO-NEW';
+  const semutId = String(input.semutId);
   const koloni = getKoloniNode(input.koloniCode);
   const portal = makePortalIdentity(semutId);
   return {
     ok: true,
     actor: {
       semutId,
-      displayName: input.displayName || 'Semut Baru',
+      displayName: input.displayName || semutId,
       portalLogin: portal.portalLogin,
       portalStatus: portal.portalStatus,
       partnerExternalId: portal.partnerExternalId,
@@ -412,7 +286,7 @@ export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCo
       targetModel: 'res.partner',
       koloniCode: koloni.code,
       fields: {
-        name: input.displayName || 'Semut Baru',
+        name: input.displayName || semutId,
         ref: semutId,
         login: portal.portalLogin,
         portal_login: portal.portalLogin,
@@ -427,19 +301,20 @@ export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCo
 }
 
 export function buildRoleApplication(input: { semutId?: string; roleCode?: RoleId; sourceApp?: string; koloniCode?: string }) {
-  const roleCode = input.roleCode || 'umkm';
+  const roleCode = input.roleCode || 'member';
+  const semutId = String(input.semutId);
   const koloni = getKoloniNode(input.koloniCode);
   return {
     ok: true,
     roleApplication: {
-      semutId: input.semutId || 'SMT-DEMO-ROLE',
+      semutId,
       roleCode,
       status: roleCode === 'admin' ? 'needs_admin_approval' : 'submitted',
       koloniCode: koloni.code,
       wilayahCode: koloni.wilayahCode || defaultWilayahCode,
     },
     odoo: envelope({
-      actorSemutId: input.semutId || 'SMT-DEMO-ROLE',
+      actorSemutId: semutId,
       roleCode,
       sourceApp: input.sourceApp || 'namlah-superapp',
       targetModel: 'project.task',
@@ -449,7 +324,7 @@ export function buildRoleApplication(input: { semutId?: string; roleCode?: RoleI
         x_namlah_mobile_status: 'submitted',
         x_namlah_proof_status: 'required',
         x_namlah_template_code: 'umkm_onboarding_basic',
-        x_namlah_plan_code: `role_application.${input.semutId || 'SMT-DEMO-ROLE'}.${roleCode}`,
+        x_namlah_plan_code: `role_application.${semutId}.${roleCode}`,
       },
     }),
   };
@@ -457,14 +332,13 @@ export function buildRoleApplication(input: { semutId?: string; roleCode?: RoleI
 
 export function buildUmkmOnboarding(input: { semutId?: string; businessName?: string; ownerName?: string; koloniCode?: string }) {
   const template = getTemplate('umkm_onboarding_basic');
-  const semutId = input.semutId || 'SMT-UMKM-NEW';
+  const semutId = String(input.semutId);
   const koloni = getKoloniNode(input.koloniCode);
   const tasks = flattenBlueprint(template, semutId, semutId.toLowerCase().replace(/[^a-z0-9]+/g, '_'), `Onboarding UMKM ${input.businessName || input.ownerName || semutId}`, koloni.code);
   return {
     ok: true,
     template,
     tasks,
-    dashboard: buildKoloniDashboard('umkm', koloni.code),
     odoo: envelope({
       actorSemutId: semutId,
       roleCode: 'umkm',
@@ -483,9 +357,9 @@ export function buildUmkmOnboarding(input: { semutId?: string; businessName?: st
 }
 
 export function buildProjectFromTemplate(input: { semutId?: string; roleCode?: RoleId; templateCode?: NamlahProjectTemplateCode; planName?: string; koloniCode?: string }) {
-  const template = getTemplate(input.templateCode || 'donation_execution_plan');
+  const template = getTemplate(String(input.templateCode));
   const roleCode = input.roleCode || template.roleScope[0] || 'admin';
-  const semutId = input.semutId || 'SMT-PLAN-NEW';
+  const semutId = String(input.semutId);
   const koloni = getKoloniNode(input.koloniCode);
   const seed = `${template.code}_${semutId}`.toLowerCase().replace(/[^a-z0-9]+/g, '_');
   const tasks = flattenBlueprint(template, semutId, seed, input.planName, koloni.code);
@@ -515,22 +389,53 @@ export function buildProjectFromTemplate(input: { semutId?: string; roleCode?: R
   };
 }
 
-export function buildTaskStatusUpdate(taskId: string, input: { semutId?: string; roleCode?: RoleId; stageCode?: string; mobileStatus?: NamlahMobileStatus }) {
-  const task = getTask(taskId);
-  const stage = stageByCode(input.stageCode || task.stageCode);
-  const roleCode = input.roleCode || task.roleCode;
+export function buildTaskStatusUpdate(taskId: string, input: {
+  semutId?: string;
+  roleCode?: RoleId;
+  koloniCode?: string;
+  stageCode?: string;
+  mobileStatus?: NamlahMobileStatus;
+  templateCode?: NamlahProjectTemplateCode;
+  planCode?: string;
+  taskTitle?: string;
+  sourceApp?: string;
+}) {
+  const stage = stageByCode(input.stageCode || controlStages[0].code);
+  const roleCode = input.roleCode || 'member';
+  const semutId = String(input.semutId);
+  const koloni = getKoloniNode(input.koloniCode);
+  const cleanTaskId = taskId.replace(/^namlah_task\./, '');
+  const sourceApp = input.sourceApp || 'namlah-superapp';
+  const task: NamlahControlTask = {
+    id: cleanTaskId,
+    title: input.taskTitle || cleanTaskId,
+    project: 'Odoo Project',
+    stageCode: stage.code,
+    stageLabel: stage.label,
+    roleCode,
+    semutId,
+    koloniCode: koloni.code,
+    wilayahCode: koloni.wilayahCode || defaultWilayahCode,
+    sourceApp,
+    templateCode: input.templateCode || 'umkm_onboarding_basic',
+    planCode: input.planCode || cleanTaskId,
+    proofStatus: 'none',
+    mobileStatus: input.mobileStatus || 'synced',
+    deadline: '',
+    priority: '0',
+    childrenCount: 0,
+    needsValidation: false,
+    isLate: false,
+  };
   return {
     ok: true,
     task: {
       ...task,
-      stageCode: stage.code,
-      stageLabel: stage.label,
-      mobileStatus: input.mobileStatus || 'synced',
     },
     odoo: envelope({
-      actorSemutId: input.semutId || task.semutId,
+      actorSemutId: semutId,
       roleCode,
-      sourceApp: task.sourceApp,
+      sourceApp,
       targetModel: 'project.task',
       koloniCode: task.koloniCode,
       fields: {
@@ -544,27 +449,79 @@ export function buildTaskStatusUpdate(taskId: string, input: { semutId?: string;
   };
 }
 
-export function buildTaskProof(taskId: string, input: { semutId?: string; roleCode?: RoleId; proofStatus?: NamlahTaskProofStatus; note?: string }) {
-  const task = getTask(taskId);
-  const roleCode = input.roleCode || task.roleCode;
+export function buildTaskProof(taskId: string, input: {
+  semutId?: string;
+  roleCode?: RoleId;
+  koloniCode?: string;
+  proofStatus?: NamlahTaskProofStatus;
+  note?: string;
+  sourceApp?: string;
+}) {
+  const roleCode = input.roleCode || 'member';
+  const semutId = String(input.semutId);
+  const koloni = getKoloniNode(input.koloniCode);
+  const cleanTaskId = taskId.replace(/^namlah_task\./, '');
+  const taskExternalId = `namlah_task.${cleanTaskId}`;
   return {
     ok: true,
     proof: {
-      taskId: task.id,
+      taskId: taskExternalId,
       status: input.proofStatus || 'submitted',
-      note: input.note || `Proof submitted for ${task.title}`,
-      requiredProof: stageByCode(task.stageCode).requiredProof,
+      note: input.note || `Proof submitted for ${taskExternalId}`,
     },
     odoo: envelope({
-      actorSemutId: input.semutId || task.semutId,
+      actorSemutId: semutId,
       roleCode,
-      sourceApp: task.sourceApp,
+      sourceApp: input.sourceApp || 'namlah-superapp',
       targetModel: 'project.task.proof',
-      koloniCode: task.koloniCode,
+      koloniCode: koloni.code,
       fields: {
-        project_task_external_id: `namlah_task.${task.id}`,
+        project_task_external_id: taskExternalId,
         x_namlah_proof_status: input.proofStatus || 'submitted',
         note: input.note || null,
+      },
+    }),
+  };
+}
+
+export function buildCashierTransaction(input: {
+  semutId: string;
+  koloniCode: string;
+  amount: number;
+  deliveryCustomerName: string;
+  deliveryPhone?: string;
+  deliveryAddress?: string;
+  note?: string;
+  transactionCode?: string;
+}) {
+  const koloni = getKoloniNode(input.koloniCode);
+  const transactionCode = input.transactionCode || `cashier.${koloni.code}.${input.semutId}.${Date.now()}`;
+  return {
+    ok: true,
+    transaction: {
+      semutId: input.semutId,
+      roleCode: 'kasir' satisfies RoleId,
+      koloniCode: koloni.code,
+      wilayahCode: koloni.wilayahCode || defaultWilayahCode,
+      amount: input.amount,
+      deliveryCustomerName: input.deliveryCustomerName,
+      transactionCode,
+    },
+    odoo: envelope({
+      actorSemutId: input.semutId,
+      roleCode: 'kasir',
+      sourceApp: 'namlah-kasir',
+      targetModel: 'sale.order',
+      koloniCode: koloni.code,
+      fields: {
+        name: `Transaksi Kasir ${input.semutId}`,
+        x_namlah_template_code: 'cashier_transaction_flow',
+        x_namlah_plan_code: transactionCode,
+        amount_total_input: input.amount,
+        delivery_customer_name: input.deliveryCustomerName,
+        delivery_phone: input.deliveryPhone || '',
+        delivery_address: input.deliveryAddress || '',
+        note: input.note || '',
       },
     }),
   };

@@ -1,31 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getKoloniNode } from '../../../../../lib/koloni';
+import { getOdooBridgeStatus } from '../../../../../lib/odooBridge/config';
 
 export const dynamic = 'force-dynamic';
 
-type RouteContext = {
-  params: Promise<{ koloniCode: string }>;
-};
-
-export async function POST(request: Request, context: RouteContext) {
-  const { koloniCode } = await context.params;
-  const body = await request.json().catch(() => ({}));
-  const child = getKoloniNode(koloniCode);
-  const parent = getKoloniNode(body.parentKoloniCode || child.parentKoloniCode);
-  const approved = body.status !== 'rejected';
-  const approverSemutId = typeof body.semutId === 'string' && body.semutId.trim() ? body.semutId.trim() : parent.primaryRatuSemutId;
-
+export async function POST() {
+  const status = getOdooBridgeStatus();
   return NextResponse.json({
-    ok: true,
-    mode: 'demo_contract',
-    relation: {
-      childKoloniCode: child.code,
-      parentKoloniCode: parent.code,
-      status: approved ? 'approved' : 'rejected',
-      approvedBySemutId: approverSemutId,
-      ownershipTransferred: false,
-    },
+    ok: false,
+    mode: status.live ? 'odoo_model_required' : 'odoo_required',
+    bridge: status,
+    error: status.live
+      ? 'Approval parent koloni harus mengubah record Odoo real. Adapter relasi koloni belum disambungkan.'
+      : 'Odoo bridge belum aktif. Approval parent koloni tidak boleh dibuat lokal.',
   }, {
+    status: status.live ? 501 : 503,
     headers: { 'Cache-Control': 'no-store' },
   });
 }

@@ -1,35 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getKoloniNode } from '../../../../../lib/koloni';
-import type { RoleId } from '../../../../../lib/types';
+import { getOdooBridgeStatus } from '../../../../../lib/odooBridge/config';
 
 export const dynamic = 'force-dynamic';
 
-type RouteContext = {
-  params: Promise<{ koloniCode: string }>;
-};
-
-const roleIds: RoleId[] = ['member', 'surveyor', 'kurir', 'kasir', 'umkm', 'admin', 'koperasi'];
-
-export async function POST(request: Request, context: RouteContext) {
-  const { koloniCode } = await context.params;
-  const body = await request.json().catch(() => ({}));
-  const koloni = getKoloniNode(koloniCode);
-  const roleId = roleIds.includes(body.roleId) ? body.roleId : 'member';
-  const semutId = typeof body.semutId === 'string' && body.semutId.trim() ? body.semutId.trim() : 'SMT-DEMO-JOIN';
-
+export async function POST() {
+  const status = getOdooBridgeStatus();
   return NextResponse.json({
-    ok: true,
-    colony: koloni,
-    membership: {
-      semutId,
-      roleId,
-      koloniCode: koloni.code,
-      wilayahCode: koloni.wilayahCode,
-      status: koloni.joinPolicy === 'open' ? 'active' : 'pending',
-      requiresRolePin: true,
-      ownerRole: roleId === 'admin' ? 'ratu_koloni' : 'semut_role',
-    },
+    ok: false,
+    mode: status.live ? 'odoo_model_required' : 'odoo_required',
+    bridge: status,
+    error: status.live
+      ? 'Join koloni harus membuat membership/role di Odoo real. Adapter membership koloni belum disambungkan.'
+      : 'Odoo bridge belum aktif. Membership koloni tidak boleh dibuat lokal.',
   }, {
+    status: status.live ? 501 : 503,
     headers: { 'Cache-Control': 'no-store' },
   });
 }

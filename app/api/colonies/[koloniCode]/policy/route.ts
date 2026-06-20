@@ -1,39 +1,19 @@
 import { NextResponse } from 'next/server';
-import { describeKoloniPolicy, getKoloniNode, type KoloniAccessMode, type KoloniVisibilityPolicy } from '../../../../../lib/koloni';
+import { getOdooBridgeStatus } from '../../../../../lib/odooBridge/config';
 
 export const dynamic = 'force-dynamic';
 
-type RouteContext = {
-  params: Promise<{ koloniCode: string }>;
-};
-
-const visibilityValues: KoloniVisibilityPolicy[] = ['private', 'parent_scope', 'public_catalog'];
-
-export async function PATCH(request: Request, context: RouteContext) {
-  const { koloniCode } = await context.params;
-  const body = await request.json().catch(() => ({}));
-  const koloni = getKoloniNode(koloniCode);
-  const accessMode: KoloniAccessMode = body.accessMode === 'inclusive' ? 'inclusive' : 'exclusive';
-  const catalogVisibility = visibilityValues.includes(body.catalogVisibility) ? body.catalogVisibility : koloni.catalogVisibility;
-  const collaborationVisibility = visibilityValues.includes(body.collaborationVisibility) ? body.collaborationVisibility : koloni.collaborationVisibility;
-
+export async function PATCH() {
+  const status = getOdooBridgeStatus();
   return NextResponse.json({
-    ok: true,
-    mode: 'demo_contract',
-    colony: {
-      ...koloni,
-      accessMode,
-      catalogVisibility,
-      collaborationVisibility,
-    },
-    policy: {
-      ...describeKoloniPolicy(koloni),
-      accessMode,
-      catalogVisibility,
-      collaborationVisibility,
-    },
-    note: 'Policy update is a mock gateway contract; real persistence belongs in the Namlah bridge/Odoo adapter.',
+    ok: false,
+    mode: status.live ? 'odoo_model_required' : 'odoo_required',
+    bridge: status,
+    error: status.live
+      ? 'Policy koloni harus disimpan ke model/policy Odoo real. Adapter koloni belum disambungkan.'
+      : 'Odoo bridge belum aktif. Policy koloni tidak boleh disimpan sebagai kontrak lokal.',
   }, {
+    status: status.live ? 501 : 503,
     headers: { 'Cache-Control': 'no-store' },
   });
 }

@@ -1,21 +1,14 @@
 import {
   Activity,
   ArrowRight,
-  Boxes,
-  CircleDollarSign,
   ClipboardCheck,
-  Home,
-  MapPin,
   Navigation,
-  Route,
+  RadioTower,
   ShieldCheck,
-  Store,
   Workflow,
-  type LucideIcon,
 } from 'lucide-react';
-import { activities, nestPins } from '../lib/mockData';
 import { getSourceOfTruth, makePortalActor } from '../lib/odooArchitecture';
-import type { NestPin, RoleConfig, SemutAccount } from '../lib/types';
+import type { RoleConfig, SemutAccount } from '../lib/types';
 
 type ConceptMapProps = {
   account: SemutAccount;
@@ -24,19 +17,7 @@ type ConceptMapProps = {
 
 const cirebonMapEmbed = 'https://www.openstreetmap.org/export/embed.html?bbox=108.5200%2C-6.7850%2C108.6120%2C-6.6900&layer=mapnik&marker=-6.7320%2C108.5523';
 
-function iconForPin(pin: NestPin): LucideIcon {
-  if (pin.type === 'nest') return Home;
-  if (pin.type === 'store') return Store;
-  if (pin.type === 'route') return Route;
-  if (pin.type === 'stock') return Boxes;
-  if (pin.type === 'finance') return CircleDollarSign;
-  return MapPin;
-}
-
 export function ConceptMap({ account, role }: ConceptMapProps) {
-  const visiblePins = nestPins.filter((pin) => pin.roles.includes(role.id));
-  const visibleActivities = activities.filter((activity) => activity.roleId === role.id).slice(0, 3);
-  const activityCount = visiblePins.reduce((total, pin) => total + pin.activityCount, 0);
   const actor = makePortalActor(account);
   const source = getSourceOfTruth(role.id);
 
@@ -60,24 +41,14 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
             loading="lazy"
           />
           <div className="map-source-chip"><Navigation size={14} /> OpenStreetMap / Cirebon</div>
-          <div className="map-pin-layer" aria-label="Pin aktivitas role">
-            {visiblePins.map((pin) => {
-              const Icon = iconForPin(pin);
-              return (
-                <button
-                  type="button"
-                  className={pin.status === 'urgent' || pin.status === 'active' ? 'real-map-pin hot' : 'real-map-pin'}
-                  key={pin.id}
-                  style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-                >
-                  <Icon size={18} />
-                  <span>
-                    <strong>{pin.label}</strong>
-                    <small>{pin.activityCount} aktivitas</small>
-                  </span>
-                </button>
-              );
-            })}
+          <div className="map-pin-layer map-pin-layer-empty" aria-label="Pin aktivitas role">
+            <div className="map-empty-state">
+              <RadioTower size={18} />
+              <span>
+                <strong>Pin real menunggu Odoo live.</strong>
+                <small>Pin akan diambil dari project.task dan sale.order koloni.</small>
+              </span>
+            </div>
           </div>
         </section>
 
@@ -102,8 +73,8 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
               </article>
             ))}
             <article>
-              <strong>{activityCount}</strong>
-              <span>Pin aktif</span>
+              <strong>Odoo</strong>
+              <span>Source</span>
             </article>
           </section>
 
@@ -136,24 +107,13 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
               <span><Activity size={15} /> Aktivitas</span>
               <strong>{role.label}</strong>
             </div>
-            {visibleActivities.map((activity) => (
-              <article key={activity.id} className={`activity-feed-row ${activity.severity}`}>
-                <ClipboardCheck size={16} />
-                <div>
-                  <strong>{activity.title}</strong>
-                  <span>{activity.time} / {activity.severity}</span>
-                </div>
-              </article>
-            ))}
-            {!visibleActivities.length && (
-              <article className="activity-feed-row">
-                <ClipboardCheck size={16} />
-                <div>
-                  <strong>Belum ada aktivitas role.</strong>
-                  <span>demo local</span>
-                </div>
-              </article>
-            )}
+            <article className="activity-feed-row">
+              <ClipboardCheck size={16} />
+              <div>
+                <strong>Aktivitas belum ditarik.</strong>
+                <span>Hubungkan Odoo live untuk membaca task/order real.</span>
+              </div>
+            </article>
           </section>
         </aside>
       </div>

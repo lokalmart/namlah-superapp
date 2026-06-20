@@ -62,6 +62,10 @@ const requiredModels: ModelSpec[] = [
     fields: [
       { name: 'name', type: 'char' },
       { name: 'ref', type: 'char' },
+      { name: 'parent_id', type: 'many2one', relation: 'res.partner' },
+      { name: 'type', type: 'selection' },
+      { name: 'phone', type: 'char' },
+      { name: 'street', type: 'char' },
     ],
   },
   {
@@ -120,13 +124,25 @@ const requiredModels: ModelSpec[] = [
     fields: [
       { name: 'name', type: 'char' },
       { name: 'partner_id', type: 'many2one', relation: 'res.partner' },
+      { name: 'partner_shipping_id', type: 'many2one', relation: 'res.partner' },
+      { name: 'order_line', type: 'one2many' },
       { name: 'amount_total', type: 'monetary' },
       { name: 'state', type: 'selection' },
       { name: 'date_order' },
       ...commonScopeFields,
       ...actorFields,
+      { name: 'x_namlah_project_id', type: 'many2one', relation: 'project.project' },
       { name: 'x_namlah_task_id', type: 'many2one', relation: 'project.task' },
       { name: 'x_namlah_outlet_code', type: 'char' },
+    ],
+  },
+  {
+    model: 'product.product',
+    fields: [
+      { name: 'name', type: 'char' },
+      { name: 'default_code', type: 'char' },
+      { name: 'sale_ok', type: 'boolean' },
+      { name: 'list_price', type: 'float' },
     ],
   },
   {

@@ -25,14 +25,14 @@ export type KoloniNode = {
   parentRelationStatus?: KoloniRelationStatus;
 };
 
-export const defaultKoloniCode = 'koloni_kejaksan_demo';
-export const defaultWilayahCode = 'wilayah_kecamatan_kejaksan_demo';
+export const defaultKoloniCode = 'koloni_kejaksan';
+export const defaultWilayahCode = 'wilayah_kecamatan_kejaksan';
 
 export const koloniNodes: KoloniNode[] = [
   {
-    code: 'mega_cirebon_demo',
+    code: 'mega_cirebon',
     name: 'Mega Koloni Cirebon',
-    wilayahCode: 'wilayah_kota_cirebon_demo',
+    wilayahCode: 'wilayah_kota_cirebon',
     geoAreaCode: 'geo_kota_cirebon',
     geoAreaName: 'Kota Cirebon',
     level: 'mega_koloni',
@@ -44,12 +44,12 @@ export const koloniNodes: KoloniNode[] = [
     primaryRatuSemutId: 'SMT-RATU-MEGA',
     primaryRatuName: 'Ratu Mega Cirebon',
     primaryRatuPhone: '+6281122001100',
-    primaryRatuEmail: 'ratu.mega@namlah.local',
+    primaryRatuEmail: 'ratu.mega@namlah.id',
   },
   {
-    code: 'koloni_kejaksan_demo',
+    code: 'koloni_kejaksan',
     name: 'Koloni Kecamatan Kejaksan',
-    wilayahCode: 'wilayah_kecamatan_kejaksan_demo',
+    wilayahCode: 'wilayah_kecamatan_kejaksan',
     geoAreaCode: 'geo_kecamatan_kejaksan',
     geoAreaName: 'Kecamatan Kejaksan',
     level: 'koloni',
@@ -61,14 +61,14 @@ export const koloniNodes: KoloniNode[] = [
     primaryRatuSemutId: 'SMT-RATU-KEJAKSAN',
     primaryRatuName: 'Ratu Koloni Kejaksan',
     primaryRatuPhone: '+6281122001101',
-    primaryRatuEmail: 'ratu.kejaksan@namlah.local',
-    parentKoloniCode: 'mega_cirebon_demo',
+    primaryRatuEmail: 'ratu.kejaksan@namlah.id',
+    parentKoloniCode: 'mega_cirebon',
     parentRelationStatus: 'approved',
   },
   {
-    code: 'koloni_kedawung_demo',
+    code: 'koloni_kedawung',
     name: 'Koloni Kecamatan Kedawung',
-    wilayahCode: 'wilayah_kecamatan_kedawung_demo',
+    wilayahCode: 'wilayah_kecamatan_kedawung',
     geoAreaCode: 'geo_kecamatan_kedawung',
     geoAreaName: 'Kecamatan Kedawung',
     level: 'koloni',
@@ -80,14 +80,14 @@ export const koloniNodes: KoloniNode[] = [
     primaryRatuSemutId: 'SMT-RATU-KEDAWUNG',
     primaryRatuName: 'Ratu Koloni Kedawung',
     primaryRatuPhone: '+6281122001102',
-    primaryRatuEmail: 'ratu.kedawung@namlah.local',
-    parentKoloniCode: 'mega_cirebon_demo',
+    primaryRatuEmail: 'ratu.kedawung@namlah.id',
+    parentKoloniCode: 'mega_cirebon',
     parentRelationStatus: 'approved',
   },
   {
-    code: 'koloni_harjamukti_demo',
+    code: 'koloni_harjamukti',
     name: 'Koloni Kecamatan Harjamukti',
-    wilayahCode: 'wilayah_kecamatan_harjamukti_demo',
+    wilayahCode: 'wilayah_kecamatan_harjamukti',
     geoAreaCode: 'geo_kecamatan_harjamukti',
     geoAreaName: 'Kecamatan Harjamukti',
     level: 'koloni',
@@ -99,14 +99,14 @@ export const koloniNodes: KoloniNode[] = [
     primaryRatuSemutId: 'SMT-RATU-HARJAMUKTI',
     primaryRatuName: 'Ratu Koloni Harjamukti',
     primaryRatuPhone: '+6281122001103',
-    primaryRatuEmail: 'ratu.harjamukti@namlah.local',
-    parentKoloniCode: 'mega_cirebon_demo',
+    primaryRatuEmail: 'ratu.harjamukti@namlah.id',
+    parentKoloniCode: 'mega_cirebon',
     parentRelationStatus: 'approved',
   },
   {
-    code: 'koloni_kejaksan_mandiri_demo',
+    code: 'koloni_kejaksan_mandiri',
     name: 'Koloni Kejaksan Mandiri',
-    wilayahCode: 'wilayah_kecamatan_kejaksan_demo',
+    wilayahCode: 'wilayah_kecamatan_kejaksan',
     geoAreaCode: 'geo_kecamatan_kejaksan',
     geoAreaName: 'Kecamatan Kejaksan',
     level: 'koloni',
@@ -118,12 +118,36 @@ export const koloniNodes: KoloniNode[] = [
     primaryRatuSemutId: 'SMT-RATU-MANDIRI',
     primaryRatuName: 'Ratu Koloni Mandiri',
     primaryRatuPhone: '+6281122001104',
-    primaryRatuEmail: 'ratu.mandiri@namlah.local',
+    primaryRatuEmail: 'ratu.mandiri@namlah.id',
   },
 ];
 
+function virtualKoloniNode(code: string): KoloniNode {
+  return {
+    code,
+    name: `Koloni ${code}`,
+    wilayahCode: defaultWilayahCode,
+    geoAreaCode: defaultWilayahCode.replace(/^wilayah_/, 'geo_'),
+    geoAreaName: 'Wilayah Odoo',
+    level: 'koloni',
+    status: 'active',
+    accessMode: 'exclusive',
+    joinPolicy: 'approval_required',
+    catalogVisibility: 'private',
+    collaborationVisibility: 'private',
+    primaryRatuSemutId: '',
+    primaryRatuName: 'Ratu Koloni',
+    primaryRatuPhone: '',
+    primaryRatuEmail: '',
+  };
+}
+
 export function getKoloniNode(code?: string) {
-  return koloniNodes.find((node) => node.code === code) || koloniNodes.find((node) => node.code === defaultKoloniCode) || koloniNodes[0];
+  const cleanedCode = code?.trim();
+  const known = koloniNodes.find((node) => node.code === cleanedCode);
+  if (known) return known;
+  if (cleanedCode) return virtualKoloniNode(cleanedCode);
+  return koloniNodes.find((node) => node.code === defaultKoloniCode) || koloniNodes[0];
 }
 
 export function getJoinableKoloniNodes() {

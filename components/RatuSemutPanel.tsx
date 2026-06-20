@@ -3,7 +3,7 @@
 import { AlertTriangle, ClipboardCheck, Crown, Database, FileBarChart, KanbanSquare, Landmark, Mail, Phone, Play, RefreshCcw, ShieldCheck, ShoppingCart, Sparkles, type LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { describeKoloniPolicy, getKoloniNode, getKoloniScope } from '../lib/koloni';
-import { buildKoloniDashboard, stagesForFlow } from '../lib/projectControlTower';
+import { stagesForFlow } from '../lib/projectControlTower';
 import { getActiveRoleAssignment } from '../lib/storage';
 import type { NamlahKoloniDashboard, NamlahKanbanFlow, NamlahRatuView, RoleConfig, SemutAccount } from '../lib/types';
 
@@ -25,13 +25,37 @@ const viewButtons: Array<{ id: NamlahRatuView; label: string; icon: LucideIcon }
   { id: 'balance_sheet', label: 'Balance Sheet', icon: FileBarChart },
 ];
 
-type DashboardSource = 'demo_local' | 'odoo_live' | 'odoo_error_fallback';
+type DashboardSource = 'odoo_required' | 'odoo_live' | 'odoo_error';
 
 const dashboardSourceCopy: Record<DashboardSource, { label: string; detail: string }> = {
-  demo_local: { label: 'Demo lokal', detail: 'Data fallback showcase, belum membaca database.' },
+  odoo_required: { label: 'Odoo wajib', detail: 'Dashboard hanya berjalan saat bridge Odoo live.' },
   odoo_live: { label: 'Odoo live', detail: 'Dashboard dibaca dari bridge Odoo.' },
-  odoo_error_fallback: { label: 'Fallback lokal', detail: 'Bridge Odoo gagal, data demo sedang dipakai.' },
+  odoo_error: { label: 'Odoo error', detail: 'Bridge Odoo gagal membaca data real.' },
 };
+
+function emptyDashboard(koloniCode: string | undefined, wilayahCode: string | undefined): NamlahKoloniDashboard {
+  return {
+    koloniCode: koloniCode || '-',
+    wilayahCode: wilayahCode || '-',
+    generatedAt: '-',
+    activeView: 'kanban',
+    metrics: [],
+    stages: [],
+    templates: [],
+    taskByStage: [],
+    taskByRole: [],
+    topTemplates: [],
+    activeUmkm: 0,
+    donationPrograms: 0,
+    lateTasks: [],
+    validationTasks: [],
+    tasks: [],
+    salesOrders: [],
+    milestones: [],
+    balanceSheetLines: [],
+    auditTrail: [],
+  };
+}
 
 export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
   const assignment = getActiveRoleAssignment(account);
@@ -41,9 +65,9 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
   const koloniPolicy = useMemo(() => describeKoloniPolicy(koloniNode), [koloniNode]);
   const [activeView, setActiveView] = useState<NamlahRatuView>('kanban');
   const [flow, setFlow] = useState<NamlahKanbanFlow>('umkm_onboarding');
-  const [dashboard, setDashboard] = useState<NamlahKoloniDashboard>(() => buildKoloniDashboard(account.activeRoleId, koloniCode, 'kanban'));
-  const [dashboardSource, setDashboardSource] = useState<DashboardSource>('demo_local');
-  const [lastAction, setLastAction] = useState('Dashboard Ratu Semut siap.');
+  const [dashboard, setDashboard] = useState<NamlahKoloniDashboard>(() => emptyDashboard(koloniNode.code, koloniNode.wilayahCode));
+  const [dashboardSource, setDashboardSource] = useState<DashboardSource>('odoo_required');
+  const [lastAction, setLastAction] = useState('Menunggu koneksi Odoo real.');
   const [syncing, setSyncing] = useState(false);
   const visibleStages = useMemo(() => stagesForFlow(flow), [flow]);
   const visibleTasks = useMemo(
@@ -55,7 +79,7 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
     let active = true;
 
     async function loadDashboard() {
-      let nextSource: DashboardSource = 'demo_local';
+      let nextSource: DashboardSource = 'odoo_required';
       try {
         const params = new URLSearchParams({
           role: account.activeRoleId,
@@ -64,8 +88,11 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
         if (koloniCode) params.set('koloniCode', koloniCode);
         const response = await fetch(`/api/ratu/dashboard?${params.toString()}`, { cache: 'no-store' });
         const sourceHeader = response.headers.get('x-namlah-dashboard-source');
-        nextSource = sourceHeader === 'odoo_live' ? 'odoo_live' : sourceHeader === 'odoo_error' ? 'odoo_error_fallback' : 'demo_local';
-        if (!response.ok) throw new Error('dashboard failed');
+        nextSource = sourceHeader === 'odoo_live' ? 'odoo_live' : sourceHeader === 'odoo_error' ? 'odoo_error' : 'odoo_required';
+        if (!response.ok) {
+          const payload = await response.json().catch(() => null) as { error?: string } | null;
+          throw new Error(payload?.error || 'dashboard failed');
+        }
         const nextDashboard = await response.json() as NamlahKoloniDashboard;
         if (active) {
           setDashboard(nextDashboard);
@@ -74,9 +101,9 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
         }
       } catch {
         if (active) {
-          setDashboard(buildKoloniDashboard(account.activeRoleId, koloniCode, activeView));
+          setDashboard(emptyDashboard(koloniNode.code, koloniNode.wilayahCode));
           setDashboardSource(nextSource);
-          setLastAction('Fallback ke data demo lokal.');
+          setLastAction(nextSource === 'odoo_required' ? 'Aktifkan Odoo bridge untuk melihat dashboard.' : 'Bridge Odoo gagal membaca dashboard.');
         }
       }
     }
@@ -87,7 +114,7 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
       active = false;
       window.clearInterval(timer);
     };
-  }, [account.activeRoleId, activeView, koloniCode]);
+  }, [account.activeRoleId, activeView, koloniCode, koloniNode.code, koloniNode.wilayahCode]);
 
   async function simulateUmkmOnboarding() {
     setSyncing(true);

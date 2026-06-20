@@ -9,7 +9,7 @@ import { RatuSemutPanel } from '../components/RatuSemutPanel';
 import { RoleContextBar } from '../components/RoleContextBar';
 import { ScanPanel } from '../components/ScanPanel';
 import { StorePanel } from '../components/StorePanel';
-import { roleConfigs } from '../lib/mockData';
+import { roleConfigs } from '../lib/roleConfig';
 import { loadAccount, saveAccount } from '../lib/storage';
 import type { AppTab, SemutAccount } from '../lib/types';
 

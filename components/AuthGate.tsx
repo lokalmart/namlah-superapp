@@ -4,9 +4,9 @@ import { KeyRound, Sparkles, UserRoundPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { PinPad } from './PinPad';
 import { defaultKoloniCode, getJoinableKoloniNodes, getKoloniNode } from '../lib/koloni';
-import { roleConfigs } from '../lib/mockData';
+import { roleConfigs } from '../lib/roleConfig';
 import { makePortalIdentity } from '../lib/portalIdentity';
-import { createPinHashDemo, loadAccount, makeRoleAssignment, makeSemutId, saveAccount, verifyPinDemo } from '../lib/storage';
+import { createPinHashLocal, loadAccount, makeRoleAssignment, makeSemutId, saveAccount, verifyPinLocal } from '../lib/storage';
 import type { SemutAccount } from '../lib/types';
 
 type AuthGateProps = {
@@ -31,7 +31,7 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
     setError('');
     const nextSemutId = semutId.trim() || makeSemutId(displayName);
     const portal = makePortalIdentity(nextSemutId);
-    const pinHashDemo = createPinHashDemo(pin);
+    const pinHashLocal = createPinHashLocal(pin);
 
     try {
       const response = await fetch('/api/semut/register', {
@@ -56,11 +56,11 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
     const account: SemutAccount = {
       semutId: nextSemutId,
       displayName: displayName.trim(),
-      pinHashDemo,
+      pinHashLocal,
       portalLogin: portal.portalLogin,
       portalStatus: portal.portalStatus,
       emailVerificationStatus: portal.emailVerificationStatus,
-      roleAssignments: [makeRoleAssignment('member', pinHashDemo, selectedKoloni.code)],
+      roleAssignments: [makeRoleAssignment('member', pinHashLocal, selectedKoloni.code)],
       activeRoleId: 'member',
       experienceTheme: 'game',
     };
@@ -71,7 +71,7 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
 
   function login() {
     if (!existing) return setMode('create');
-    if (verifyPinDemo(pin, existing.pinHashDemo)) {
+    if (verifyPinLocal(pin, existing.pinHashLocal)) {
       onAuthenticated(existing);
       return;
     }
@@ -86,7 +86,7 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
         <div className="auth-copy">
           <p className="eyebrow">Namlah Superapp</p>
           <h1>Satu Semut-ID untuk banyak peran koloni.</h1>
-          <p className="muted">Showcase frontend untuk map sarang, role-ID, gudang, scan jejak, dan akun lokal.</p>
+          <p className="muted">Portal Semut-ID, role koloni, transaksi, dan dashboard wajib tersambung ke Odoo.</p>
         </div>
       </section>
 

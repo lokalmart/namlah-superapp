@@ -1,31 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getKoloniNode } from '../../../../../lib/koloni';
+import { getOdooBridgeStatus } from '../../../../../lib/odooBridge/config';
 
 export const dynamic = 'force-dynamic';
 
-type RouteContext = {
-  params: Promise<{ koloniCode: string }>;
-};
-
-export async function POST(request: Request, context: RouteContext) {
-  const { koloniCode } = await context.params;
-  const body = await request.json().catch(() => ({}));
-  const child = getKoloniNode(koloniCode);
-  const parent = getKoloniNode(body.parentKoloniCode);
-  const requesterSemutId = typeof body.semutId === 'string' && body.semutId.trim() ? body.semutId.trim() : child.primaryRatuSemutId;
-
+export async function POST() {
+  const status = getOdooBridgeStatus();
   return NextResponse.json({
-    ok: true,
-    mode: 'demo_contract',
-    relation: {
-      childKoloniCode: child.code,
-      parentKoloniCode: parent.code,
-      status: 'requested',
-      requestedBySemutId: requesterSemutId,
-      approvalRole: 'ratu_koloni_parent',
-    },
+    ok: false,
+    mode: status.live ? 'odoo_model_required' : 'odoo_required',
+    bridge: status,
+    error: status.live
+      ? 'Relasi parent koloni harus dibuat di Odoo real. Adapter relasi koloni belum disambungkan.'
+      : 'Odoo bridge belum aktif. Relasi parent koloni tidak boleh dibuat lokal.',
   }, {
-    status: 202,
+    status: status.live ? 501 : 503,
     headers: { 'Cache-Control': 'no-store' },
   });
 }

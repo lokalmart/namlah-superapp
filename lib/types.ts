@@ -10,7 +10,7 @@ export type RoleAssignmentStatus = 'pending' | 'active' | 'blocked';
 
 export type RoleAssignment = {
   roleId: RoleId;
-  rolePinHashDemo: string;
+  rolePinHashLocal: string;
   status: RoleAssignmentStatus;
   koloniCode: string;
   wilayahCode: string;
@@ -20,7 +20,7 @@ export type RoleAssignment = {
 export type SemutAccount = {
   semutId: string;
   displayName: string;
-  pinHashDemo: string;
+  pinHashLocal: string;
   portalLogin?: string;
   portalStatus?: 'portal_ready';
   emailVerificationStatus?: PortalEmailVerificationStatus;
@@ -129,6 +129,8 @@ export type PortalActor = {
 export type NamlahKanbanFlow = 'umkm_onboarding' | 'umkm_promotion' | 'donation_program';
 
 export type NamlahProjectTemplateCode =
+  | 'cashier_transaction_flow'
+  | 'member_shopping_flow'
   | 'umkm_onboarding_basic'
   | 'umkm_promotion_sprint'
   | 'survey_lokasi'
@@ -279,7 +281,7 @@ export type NamlahKoloniDashboard = {
 
 export type NamlahOdooEnvelope = {
   serviceUser: string;
-  targetModel: 'project.project' | 'project.task' | 'project.task.proof' | 'res.partner' | 'ir.attachment';
+  targetModel: 'project.project' | 'project.task' | 'project.task.proof' | 'sale.order' | 'res.partner' | 'ir.attachment';
   sourceApp: string;
   actorSemutId: string;
   roleCode: RoleId;

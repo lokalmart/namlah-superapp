@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { buildKoloniDashboard } from '../../../../lib/projectControlTower';
 import { buildLiveKoloniDashboard } from '../../../../lib/odooBridge/dashboard';
 import { isOdooBridgeLive, safeErrorMessage } from '../../../../lib/odooBridge/config';
 import type { NamlahRatuView, RoleId } from '../../../../lib/types';
@@ -22,34 +21,37 @@ export async function GET(request: Request) {
   const koloniCode = url.searchParams.get('koloniCode') || undefined;
   const viewParam = url.searchParams.get('view') as NamlahRatuView | null;
   const activeView = viewParam && ratuViews.includes(viewParam) ? viewParam : 'kanban';
-  if (isOdooBridgeLive()) {
-    try {
-      const dashboard = await buildLiveKoloniDashboard(role, koloniCode, activeView);
-      return NextResponse.json(dashboard, {
-        headers: {
-          'Cache-Control': 'no-store',
-          'x-namlah-dashboard-source': 'odoo_live',
-        },
-      });
-    } catch (error) {
-      return NextResponse.json({
-        ok: false,
-        error: safeErrorMessage(error),
-        fallbackAvailable: true,
-      }, {
-        status: 502,
-        headers: {
-          'Cache-Control': 'no-store',
-          'x-namlah-dashboard-source': 'odoo_error',
-        },
-      });
-    }
+  if (!isOdooBridgeLive()) {
+    return NextResponse.json({
+      ok: false,
+      error: 'Odoo bridge belum aktif. Dashboard koloni hanya membaca data real dari Odoo.',
+    }, {
+      status: 503,
+      headers: {
+        'Cache-Control': 'no-store',
+        'x-namlah-dashboard-source': 'odoo_required',
+      },
+    });
   }
 
-  return NextResponse.json(buildKoloniDashboard(role, koloniCode, activeView), {
-    headers: {
-      'Cache-Control': 'no-store',
-      'x-namlah-dashboard-source': 'demo_local',
-    },
-  });
+  try {
+    const dashboard = await buildLiveKoloniDashboard(role, koloniCode, activeView);
+    return NextResponse.json(dashboard, {
+      headers: {
+        'Cache-Control': 'no-store',
+        'x-namlah-dashboard-source': 'odoo_live',
+      },
+    });
+  } catch (error) {
+    return NextResponse.json({
+      ok: false,
+      error: safeErrorMessage(error),
+    }, {
+      status: 502,
+      headers: {
+        'Cache-Control': 'no-store',
+        'x-namlah-dashboard-source': 'odoo_error',
+      },
+    });
+  }
 }

@@ -1,6 +1,6 @@
 # Odoo Source of Truth for Semut-ID
 
-This prototype treats Semut-ID as a future Odoo portal actor, not only as a frontend login.
+This Superapp treats Semut-ID as an Odoo portal actor, not only as a frontend login.
 
 ## Actor Mapping
 
@@ -81,15 +81,10 @@ Stage/SOP fields on `project.task.type`:
 
 ## Ratu Semut Dashboard
 
-The first Ratu Semut implementation adds a role-gated `Ratu Semut` menu and mock API gateway routes in this Superapp. The routes only write to Odoo when `NAMLAH_BRIDGE_LIVE=true` and `NAMLAH_BRIDGE_WRITES=true`, but they always emit the Odoo envelope shape that the real adapter must preserve:
+The Ratu Semut menu reads Odoo live data and refuses local replacement data when the bridge is not configured. Write routes only write to Odoo when `NAMLAH_BRIDGE_LIVE=true` and `NAMLAH_BRIDGE_WRITES=true`:
 
 - `POST /api/semut/register`
-- `GET /api/colonies`
-- `POST /api/colonies`
-- `POST /api/colonies/:koloniCode/join`
-- `POST /api/colonies/:koloniCode/parent-request`
-- `POST /api/colonies/:koloniCode/parent-approval`
-- `PATCH /api/colonies/:koloniCode/policy`
+- `POST /api/cashier/orders`
 - `POST /api/roles/apply`
 - `POST /api/umkm/onboard`
 - `POST /api/projects/from-template`
@@ -100,10 +95,16 @@ The first Ratu Semut implementation adds a role-gated `Ratu Semut` menu and mock
 
 The dashboard uses `project.task` as the mission workflow view and keeps transactions/reports in their native Odoo surfaces: `sale.order`, `project.milestone`, and accounting report lines. Superapp role code `admin` is Ratu Semut; the internal Odoo service user is a technical backend identity, not a Superapp role.
 
+Koloni membership/configuration endpoints are blocked until their Odoo adapter is implemented; they must not create local replacement records.
+
+## Cashier Transaction Rule
+
+Cashier transactions must use `sale.order`. The customer (`partner_id`) is the koloni partner for the cashier's active koloni. The delivery customer entered by the cashier becomes `partner_shipping_id`. The bridge creates one cashier project per koloni and one cashier task per cashier Semut-ID, then links every order through `sale.order.x_namlah_project_id`, `sale.order.x_namlah_task_id`, and `project.task.x_namlah_sale_order_id` when the field exists. Odoo Studio or a custom addon can render those fields as the task smart button.
+
 ## Catalog Ownership
 
 Catalog listings belong to `koloniCode + UMKM owner/listingCode`. Two koloni may list a product with the same display name and both records remain valid. Later, a separate product identity table may group similar products for search, but it must not replace ownership by koloni and UMKM listing.
 
-## Prototype Boundary
+## Runtime Boundary
 
-This repo remains a demo frontend plus opt-in gateway contract. It does not call production Odoo unless the bridge env is enabled. When live writes are enabled, `/api/semut/register` upserts `res.partner` and `res.users` portal using the generated Semut-ID portal login without requiring personal email verification.
+This repo is real-only for business data. When live writes are enabled, `/api/semut/register` upserts `res.partner` and `res.users` portal using the generated Semut-ID portal login without requiring personal email verification. When Odoo is not configured, write/read routes return explicit errors instead of replacement data.

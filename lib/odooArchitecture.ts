@@ -167,10 +167,10 @@ export function getSourceOfTruth(roleId: RoleId): SourceOfTruthRecord {
     roleId,
     model,
     title: isKasir ? 'Sale Order kasir terikat shift task' : 'Project Task misi koloni',
-    project: isKasir ? 'Kasir Koloni Kejaksan' : 'Misi Koloni Kejaksan',
+    project: isKasir ? 'Project kasir koloni aktif' : 'Project misi koloni aktif',
     stage: stageGuide.stage,
-    task: isKasir ? 'Shift Kasir Posko A / Audit Harian' : `${stageGuide.stage} / ${roleId}`,
-    saleOrder: isKasir ? 'SO-KASIR-POSKO-A-0007' : undefined,
+    task: isKasir ? 'Task kasir Semut-ID aktif' : `${stageGuide.stage} / ${roleId}`,
+    saleOrder: isKasir ? 'sale.order Odoo live' : undefined,
     linkedRecord: isKasir ? 'sale.order -> project.task shift' : 'project.task -> knowledge.article SOP',
     sop: stageGuide,
     fields: [
