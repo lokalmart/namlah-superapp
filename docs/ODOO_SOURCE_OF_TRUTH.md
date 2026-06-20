@@ -4,8 +4,9 @@ This prototype treats Semut-ID as a future Odoo portal actor, not only as a fron
 
 ## Actor Mapping
 
-- `Semut-ID` maps to `res.partner` as the minimum portal actor record.
-- `res.users` portal is optional until real Odoo portal access is enabled.
+- `Semut-ID` maps to `res.partner` as the contact/actor record.
+- `Semut-ID` also maps to `res.users` portal with an internal login generated from Semut-ID, for example `smt_sadja_1234@portal.namlah.local`.
+- Personal email is optional at first registration and must not be used as a required verification gate.
 - Superapp must not store Odoo credentials in the browser.
 - API Gateway/service account writes to Odoo while preserving the real actor fields.
 
@@ -80,7 +81,7 @@ Stage/SOP fields on `project.task.type`:
 
 ## Ratu Semut Dashboard
 
-The first Ratu Semut implementation adds a role-gated `Ratu Semut` menu and mock API gateway routes in this Superapp. The routes do not write to production Odoo yet, but they emit the Odoo envelope shape that the real adapter must preserve:
+The first Ratu Semut implementation adds a role-gated `Ratu Semut` menu and mock API gateway routes in this Superapp. The routes only write to Odoo when `NAMLAH_BRIDGE_LIVE=true` and `NAMLAH_BRIDGE_WRITES=true`, but they always emit the Odoo envelope shape that the real adapter must preserve:
 
 - `POST /api/semut/register`
 - `GET /api/colonies`
@@ -105,4 +106,4 @@ Catalog listings belong to `koloniCode + UMKM owner/listingCode`. Two koloni may
 
 ## Prototype Boundary
 
-This repo remains a demo frontend plus mock gateway contract. It does not call production Odoo, does not create portal users in Odoo, and does not write real sale orders/tasks. The goal is to make the future Odoo contract visible and testable in the UX.
+This repo remains a demo frontend plus opt-in gateway contract. It does not call production Odoo unless the bridge env is enabled. When live writes are enabled, `/api/semut/register` upserts `res.partner` and `res.users` portal using the generated Semut-ID portal login without requiring personal email verification.

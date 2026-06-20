@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { PinPad } from './PinPad';
 import { defaultKoloniCode, getJoinableKoloniNodes, getKoloniNode } from '../lib/koloni';
 import { roleConfigs } from '../lib/mockData';
+import { makePortalIdentity } from '../lib/portalIdentity';
 import { createPinHashDemo, loadAccount, makeRoleAssignment, makeSemutId, saveAccount, verifyPinDemo } from '../lib/storage';
 import type { SemutAccount } from '../lib/types';
 
@@ -20,21 +21,52 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
   const [koloniCode, setKoloniCode] = useState(defaultKoloniCode);
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
+  const [creating, setCreating] = useState(false);
   const joinableKoloni = getJoinableKoloniNodes();
   const selectedKoloni = getKoloniNode(koloniCode);
 
-  function createAccount() {
-    if (!displayName.trim() || pin.length !== 4 || !selectedKoloni) return;
+  async function createAccount() {
+    if (!displayName.trim() || pin.length !== 4 || !selectedKoloni || creating) return;
+    setCreating(true);
+    setError('');
+    const nextSemutId = semutId.trim() || makeSemutId(displayName);
+    const portal = makePortalIdentity(nextSemutId);
+    const pinHashDemo = createPinHashDemo(pin);
+
+    try {
+      const response = await fetch('/api/semut/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          semutId: nextSemutId,
+          displayName: displayName.trim(),
+          koloniCode: selectedKoloni.code,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as { ok?: boolean; bridge?: { message?: string } } | null;
+      if (!response.ok || payload?.ok === false) {
+        throw new Error(payload?.bridge?.message || 'Registrasi portal belum berhasil.');
+      }
+    } catch (event) {
+      setError(event instanceof Error ? event.message : 'Registrasi portal belum berhasil.');
+      setCreating(false);
+      return;
+    }
+
     const account: SemutAccount = {
-      semutId: semutId.trim() || makeSemutId(displayName),
+      semutId: nextSemutId,
       displayName: displayName.trim(),
-      pinHashDemo: createPinHashDemo(pin),
-      roleAssignments: [makeRoleAssignment('member', createPinHashDemo(pin), selectedKoloni.code)],
+      pinHashDemo,
+      portalLogin: portal.portalLogin,
+      portalStatus: portal.portalStatus,
+      emailVerificationStatus: portal.emailVerificationStatus,
+      roleAssignments: [makeRoleAssignment('member', pinHashDemo, selectedKoloni.code)],
       activeRoleId: 'member',
       experienceTheme: 'game',
     };
     saveAccount(account);
     onAuthenticated(account);
+    setCreating(false);
   }
 
   function login() {
@@ -67,7 +99,7 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
 
           {mode === 'create' ? (
             <>
-              <h2 style={{ marginTop: 16 }}>Buat akun portal dummy.</h2>
+              <h2 style={{ marginTop: 16 }}>Buat akun portal Semut-ID.</h2>
               <div className="field-grid">
                 <label>
                   Nama tampilan
@@ -87,9 +119,15 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
                 </label>
               </div>
               <p className="muted" style={{ margin: '8px 0 0' }}>
-                Role Member akan dibuat di {selectedKoloni.name}; role lain nanti tetap memilih koloni dan PIN sendiri.
+                Role Member akan dibuat di {selectedKoloni.name}. Email tidak wajib sekarang; login portal dibuat otomatis dari Semut-ID.
               </p>
-              <PinPad value={pin} onChange={setPin} onSubmit={createAccount} submitLabel="Buat Semut-ID" disabled={!displayName.trim()} />
+              <div className="portal-preview">
+                <span>Portal login otomatis</span>
+                <strong>{semutId.trim() ? makePortalIdentity(semutId).portalLogin : 'dibuat setelah Semut-ID tersedia'}</strong>
+                <small>Verifikasi email: tidak wajib</small>
+              </div>
+              <PinPad value={pin} onChange={setPin} onSubmit={createAccount} submitLabel={creating ? 'Mendaftarkan...' : 'Buat Portal Semut-ID'} disabled={!displayName.trim() || creating} />
+              {error && <p style={{ color: 'var(--danger)', margin: '10px 0 0' }}>{error}</p>}
               {existing && (
                 <button className="primary-action secondary" type="button" onClick={() => { setMode('login'); setPin(''); }} style={{ marginTop: 10 }}>
                   Masuk akun tersimpan

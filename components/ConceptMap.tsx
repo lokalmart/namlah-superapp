@@ -1,4 +1,18 @@
-import { Boxes, CircleDollarSign, Gem, Home, LayoutGrid, MapPin, Route, Shield, Sparkles, Store, Wand2 } from 'lucide-react';
+import {
+  Activity,
+  ArrowRight,
+  Boxes,
+  CircleDollarSign,
+  ClipboardCheck,
+  Home,
+  MapPin,
+  Navigation,
+  Route,
+  ShieldCheck,
+  Store,
+  Workflow,
+  type LucideIcon,
+} from 'lucide-react';
 import { activities, nestPins } from '../lib/mockData';
 import { getSourceOfTruth, makePortalActor } from '../lib/odooArchitecture';
 import type { NestPin, RoleConfig, SemutAccount } from '../lib/types';
@@ -8,7 +22,9 @@ type ConceptMapProps = {
   role: RoleConfig;
 };
 
-function iconForPin(pin: NestPin) {
+const cirebonMapEmbed = 'https://www.openstreetmap.org/export/embed.html?bbox=108.5200%2C-6.7850%2C108.6120%2C-6.6900&layer=mapnik&marker=-6.7320%2C108.5523';
+
+function iconForPin(pin: NestPin): LucideIcon {
   if (pin.type === 'nest') return Home;
   if (pin.type === 'store') return Store;
   if (pin.type === 'route') return Route;
@@ -21,150 +37,126 @@ export function ConceptMap({ account, role }: ConceptMapProps) {
   const visiblePins = nestPins.filter((pin) => pin.roles.includes(role.id));
   const visibleActivities = activities.filter((activity) => activity.roleId === role.id).slice(0, 3);
   const activityCount = visiblePins.reduce((total, pin) => total + pin.activityCount, 0);
-  const tileCount = Array.from({ length: 36 }, (_, index) => index);
-  const squadCount = Math.max(3, Math.min(9, Math.ceil(activityCount / 9)));
   const actor = makePortalActor(account);
   const source = getSourceOfTruth(role.id);
 
   return (
-    <section className={account.experienceTheme === 'game' ? 'map-stage game-map' : 'map-stage modern-map'} aria-label="Beranda peta sarang">
-      <div className="map-grid" />
-      <div className="map-path" />
-      <div className="game-board" aria-hidden="true">
-        {tileCount.map((tile) => (
-          <span className={tile % 7 === 0 ? 'game-tile raised' : tile % 5 === 0 ? 'game-tile nest-tile' : 'game-tile'} key={tile} />
-        ))}
-      </div>
-      <div className="resource-node leaf-node" aria-hidden="true"><Gem size={18} /></div>
-      <div className="resource-node amber-node" aria-hidden="true"><Sparkles size={18} /></div>
-
-      <div className="map-topbar">
-        <div className="map-title">
-          <span className="role-badge">{role.label} / {role.homeMode}</span>
-          <h1>{role.headline}</h1>
-          <p>{account.displayName} / {account.semutId}</p>
+    <section className="screen-panel map-screen" aria-label="Beranda peta koloni">
+      <header className="screen-header map-screen-header">
+        <div>
+          <p className="eyebrow">Peta Koloni</p>
+          <h2>{role.headline}</h2>
+          <p className="muted">{account.displayName} / {account.semutId}</p>
         </div>
-        <div className="game-hud-stack">
-          <div className="map-meter">
-            <strong>{activityCount}</strong>
-            <span>Aktivitas pin</span>
-          </div>
-          <div className="map-meter compact">
-            <strong>{source.model}</strong>
-            <span>Source of truth</span>
-          </div>
-        </div>
-      </div>
+        <span className="role-badge"><Navigation size={17} /> {role.homeMode}</span>
+      </header>
 
-      {visiblePins.map((pin) => {
-        const Icon = iconForPin(pin);
-        return (
-          <button
-            type="button"
-            className={pin.status === 'urgent' || pin.status === 'active' ? 'pin hot' : 'pin'}
-            data-label={`${pin.label} / ${pin.activityCount}`}
-            aria-label={`${pin.label}, ${pin.activityCount} aktivitas`}
-            key={pin.id}
-            style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-          >
-            <Icon size={22} />
-            <span className="pin-count">{pin.activityCount}</span>
-          </button>
-        );
-      })}
-
-      <div className="ant-squad" aria-hidden="true">
-        {Array.from({ length: squadCount }, (_, index) => (
-          <span
-            className="ant-unit"
-            key={index}
-            style={{
-              left: `${index * 8}%`,
-              top: `${42 + (index % 3) * 12}%`,
-              ['--delay' as string]: `${index * -0.35}s`,
-            }}
+      <div className="map-workbench">
+        <section className="real-map-card" aria-label="Peta OpenStreetMap Cirebon">
+          <iframe
+            className="real-map-frame"
+            title="Peta OpenStreetMap Cirebon"
+            src={cirebonMapEmbed}
+            loading="lazy"
           />
-        ))}
-      </div>
-
-      <div className="activity-strip">
-        {visibleActivities.map((activity) => (
-          <article className="activity-card" key={activity.id}>
-            <span className="quest-icon"><Shield size={15} /></span>
-            <p>{activity.title}</p>
-            <span>{activity.time} / {activity.severity}</span>
-          </article>
-        ))}
-        {!visibleActivities.length && (
-          <article className="activity-card">
-            <span className="quest-icon"><Shield size={15} /></span>
-            <p>Belum ada aktivitas khusus untuk role ini.</p>
-            <span>dummy local</span>
-          </article>
-        )}
-      </div>
-
-      <section className="role-workspace" aria-label={`Menu ${role.label}`}>
-        <div className="role-workspace-head">
-          <span className="role-badge"><LayoutGrid size={16} />{role.dashboardLabel}</span>
-          <span className="theme-chip">{account.experienceTheme === 'game' ? <Sparkles size={14} /> : <Wand2 size={14} />}{account.experienceTheme}</span>
-        </div>
-        <div className="quick-stat-row">
-          {role.quickStats.map((stat) => (
-            <div className="quick-stat" key={stat.label}>
-              <strong>{stat.value}</strong>
-              <span>{stat.label}</span>
-            </div>
-          ))}
-        </div>
-        <div className="odoo-trace-grid">
-          <article className="source-card">
-            <span>Semut-ID Portal Actor</span>
-            <strong>{actor.semutId}</strong>
-            <p>{actor.partnerExternalId} / {actor.portalStatus}</p>
-          </article>
-          <article className="source-card accent">
-            <span>Source of Truth</span>
-            <strong>{source.model}</strong>
-            <p>{source.title}</p>
-          </article>
-          <article className="source-card">
-            <span>Project / Stage</span>
-            <strong>{source.project}</strong>
-            <p>{source.stage} / {source.task}</p>
-          </article>
-        </div>
-        <div className="sop-stage-card">
-          <div>
-            <span>SOP Stage</span>
-            <strong>{source.sop.stepCode}</strong>
-            <p>{source.sop.mobileHint}</p>
+          <div className="map-source-chip"><Navigation size={14} /> OpenStreetMap / Cirebon</div>
+          <div className="map-pin-layer" aria-label="Pin aktivitas role">
+            {visiblePins.map((pin) => {
+              const Icon = iconForPin(pin);
+              return (
+                <button
+                  type="button"
+                  className={pin.status === 'urgent' || pin.status === 'active' ? 'real-map-pin hot' : 'real-map-pin'}
+                  key={pin.id}
+                  style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
+                >
+                  <Icon size={18} />
+                  <span>
+                    <strong>{pin.label}</strong>
+                    <small>{pin.activityCount} aktivitas</small>
+                  </span>
+                </button>
+              );
+            })}
           </div>
-          <button type="button">{source.sop.nextActionLabel}</button>
-        </div>
-        <div className="field-pill-row">
-          {source.fields.map((field) => (
-            <span key={field.label}>{field.label}: {field.value}</span>
-          ))}
-        </div>
-        <div className="role-menu-row">
-          {role.menuItems.slice(0, 4).map((item) => (
-            <button type="button" className="role-menu-card" key={item.label}>
-              <strong>{item.label}</strong>
-              <span>{item.description}</span>
+        </section>
+
+        <aside className="role-work-panel" aria-label={`Workspace ${role.label}`}>
+          <section className="stage-focus-card">
+            <div>
+              <span><Workflow size={15} /> Tahap kerja</span>
+              <strong>{source.stage}</strong>
+              <p>{source.sop.mobileHint}</p>
+            </div>
+            <button type="button">
+              {source.sop.nextActionLabel}
+              <ArrowRight size={15} />
             </button>
-          ))}
-        </div>
-        <div className="home-card-row">
-          {role.homeCards.map((card) => (
-            <article className="home-mini-card" key={card.title}>
-              <strong>{card.value}</strong>
-              <span>{card.title}</span>
-              <p>{card.description}</p>
+          </section>
+
+          <section className="role-stat-grid" aria-label="Ringkasan role">
+            {role.quickStats.map((stat) => (
+              <article key={stat.label}>
+                <strong>{stat.value}</strong>
+                <span>{stat.label}</span>
+              </article>
+            ))}
+            <article>
+              <strong>{activityCount}</strong>
+              <span>Pin aktif</span>
             </article>
-          ))}
-        </div>
-      </section>
+          </section>
+
+          <section className="trace-card">
+            <div className="trace-card-head">
+              <span><ShieldCheck size={15} /> Jejak data</span>
+              <strong>{source.model}</strong>
+            </div>
+            <div className="trace-list">
+              <span>Actor</span><strong>{actor.semutId}</strong>
+              <span>Partner</span><strong>{actor.partnerExternalId}</strong>
+              <span>Portal</span><strong>{actor.portalLogin}</strong>
+              <span>Email</span><strong>{actor.emailRequired ? actor.emailVerificationStatus : 'tidak wajib'}</strong>
+              <span>Record</span><strong>{source.saleOrder || source.task}</strong>
+              <span>Koloni</span><strong>{actor.koloniCode}</strong>
+            </div>
+          </section>
+
+          <section className="role-action-grid" aria-label="Aksi role">
+            {role.menuItems.slice(0, 4).map((item) => (
+              <button type="button" key={item.label}>
+                <strong>{item.label}</strong>
+                <span>{item.description}</span>
+              </button>
+            ))}
+          </section>
+
+          <section className="activity-feed" aria-label="Aktivitas terbaru">
+            <div className="trace-card-head">
+              <span><Activity size={15} /> Aktivitas</span>
+              <strong>{role.label}</strong>
+            </div>
+            {visibleActivities.map((activity) => (
+              <article key={activity.id} className={`activity-feed-row ${activity.severity}`}>
+                <ClipboardCheck size={16} />
+                <div>
+                  <strong>{activity.title}</strong>
+                  <span>{activity.time} / {activity.severity}</span>
+                </div>
+              </article>
+            ))}
+            {!visibleActivities.length && (
+              <article className="activity-feed-row">
+                <ClipboardCheck size={16} />
+                <div>
+                  <strong>Belum ada aktivitas role.</strong>
+                  <span>demo local</span>
+                </div>
+              </article>
+            )}
+          </section>
+        </aside>
+      </div>
     </section>
   );
 }

@@ -18,6 +18,9 @@ export type KoloniNode = {
   catalogVisibility: KoloniVisibilityPolicy;
   collaborationVisibility: KoloniVisibilityPolicy;
   primaryRatuSemutId: string;
+  primaryRatuName: string;
+  primaryRatuPhone: string;
+  primaryRatuEmail: string;
   parentKoloniCode?: string;
   parentRelationStatus?: KoloniRelationStatus;
 };
@@ -39,6 +42,9 @@ export const koloniNodes: KoloniNode[] = [
     catalogVisibility: 'parent_scope',
     collaborationVisibility: 'parent_scope',
     primaryRatuSemutId: 'SMT-RATU-MEGA',
+    primaryRatuName: 'Ratu Mega Cirebon',
+    primaryRatuPhone: '+6281122001100',
+    primaryRatuEmail: 'ratu.mega@namlah.local',
   },
   {
     code: 'koloni_kejaksan_demo',
@@ -53,6 +59,9 @@ export const koloniNodes: KoloniNode[] = [
     catalogVisibility: 'parent_scope',
     collaborationVisibility: 'parent_scope',
     primaryRatuSemutId: 'SMT-RATU-KEJAKSAN',
+    primaryRatuName: 'Ratu Koloni Kejaksan',
+    primaryRatuPhone: '+6281122001101',
+    primaryRatuEmail: 'ratu.kejaksan@namlah.local',
     parentKoloniCode: 'mega_cirebon_demo',
     parentRelationStatus: 'approved',
   },
@@ -69,6 +78,9 @@ export const koloniNodes: KoloniNode[] = [
     catalogVisibility: 'parent_scope',
     collaborationVisibility: 'parent_scope',
     primaryRatuSemutId: 'SMT-RATU-KEDAWUNG',
+    primaryRatuName: 'Ratu Koloni Kedawung',
+    primaryRatuPhone: '+6281122001102',
+    primaryRatuEmail: 'ratu.kedawung@namlah.local',
     parentKoloniCode: 'mega_cirebon_demo',
     parentRelationStatus: 'approved',
   },
@@ -85,6 +97,9 @@ export const koloniNodes: KoloniNode[] = [
     catalogVisibility: 'parent_scope',
     collaborationVisibility: 'parent_scope',
     primaryRatuSemutId: 'SMT-RATU-HARJAMUKTI',
+    primaryRatuName: 'Ratu Koloni Harjamukti',
+    primaryRatuPhone: '+6281122001103',
+    primaryRatuEmail: 'ratu.harjamukti@namlah.local',
     parentKoloniCode: 'mega_cirebon_demo',
     parentRelationStatus: 'approved',
   },
@@ -101,6 +116,9 @@ export const koloniNodes: KoloniNode[] = [
     catalogVisibility: 'private',
     collaborationVisibility: 'private',
     primaryRatuSemutId: 'SMT-RATU-MANDIRI',
+    primaryRatuName: 'Ratu Koloni Mandiri',
+    primaryRatuPhone: '+6281122001104',
+    primaryRatuEmail: 'ratu.mandiri@namlah.local',
   },
 ];
 
@@ -150,5 +168,8 @@ export function describeKoloniPolicy(node: KoloniNode) {
     collaborationVisibility: node.collaborationVisibility,
     ownerRole: 'ratu_koloni',
     primaryRatuSemutId: node.primaryRatuSemutId,
+    primaryRatuName: node.primaryRatuName,
+    primaryRatuPhone: node.primaryRatuPhone,
+    primaryRatuEmail: node.primaryRatuEmail,
   };
 }

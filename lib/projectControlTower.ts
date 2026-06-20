@@ -1,5 +1,6 @@
 import { roleConfigs } from './mockData';
 import { defaultKoloniCode, defaultWilayahCode, getKoloniNode, getKoloniScope } from './koloni';
+import { makePortalIdentity } from './portalIdentity';
 import type {
   NamlahAuditEvent,
   NamlahBalanceSheetLine,
@@ -388,11 +389,18 @@ function envelope(params: {
 export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCode?: string }) {
   const semutId = input.semutId || 'SMT-DEMO-NEW';
   const koloni = getKoloniNode(input.koloniCode);
+  const portal = makePortalIdentity(semutId);
   return {
     ok: true,
     actor: {
       semutId,
       displayName: input.displayName || 'Semut Baru',
+      portalLogin: portal.portalLogin,
+      portalStatus: portal.portalStatus,
+      partnerExternalId: portal.partnerExternalId,
+      userExternalId: portal.userExternalId,
+      emailRequired: portal.emailRequired,
+      emailVerificationStatus: portal.emailVerificationStatus,
       defaultRole: 'member' satisfies RoleId,
       koloniCode: koloni.code,
       wilayahCode: koloni.wilayahCode || defaultWilayahCode,
@@ -406,6 +414,13 @@ export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCo
       fields: {
         name: input.displayName || 'Semut Baru',
         ref: semutId,
+        login: portal.portalLogin,
+        portal_login: portal.portalLogin,
+        partner_external_id: portal.partnerExternalId,
+        user_external_id: portal.userExternalId,
+        portal_status: portal.portalStatus,
+        email_required: portal.emailRequired,
+        email_verification_status: portal.emailVerificationStatus,
       },
     }),
   };

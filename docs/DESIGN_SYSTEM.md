@@ -20,9 +20,12 @@ Varian ini tetap dummy frontend. Tidak ada backend, Odoo, wallet, pembayaran, at
 
 ## Prinsip UI
 
-- Map sebagai first screen setelah login.
+- Map sebagai first screen setelah login, memakai OpenStreetMap Cirebon sebagai peta dasar nyata dengan overlay pin Namlah.
 - Bottom navigation tetap empat item: Map, Gudang, Scan, Akun.
 - Role aktif harus terlihat di header dan memengaruhi warna/aksi.
+- Bar konteks global wajib menunjukkan role, koloni, tahap SOP, source-of-truth Odoo, dan pintasan role.
+- Dashboard Ratu wajib menandai sumber data: `odoo_live`, `demo_local`, atau fallback lokal saat bridge gagal.
+- Kontak Ratu Koloni wajib terlihat dari Akun dan panel Ratu.
 - Aksi utama memakai icon dan label pendek.
 - PIN memakai keypad numerik besar.
 - Radius UI maksimal 8px untuk panel, button, dan field.

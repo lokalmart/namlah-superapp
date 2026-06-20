@@ -4,6 +4,8 @@ export type AppTab = 'map' | 'store' | 'ratu' | 'scan' | 'account';
 
 export type ExperienceTheme = 'modern' | 'game';
 
+export type PortalEmailVerificationStatus = 'not_required' | 'unverified' | 'verified';
+
 export type RoleAssignmentStatus = 'pending' | 'active' | 'blocked';
 
 export type RoleAssignment = {
@@ -19,6 +21,9 @@ export type SemutAccount = {
   semutId: string;
   displayName: string;
   pinHashDemo: string;
+  portalLogin?: string;
+  portalStatus?: 'portal_ready';
+  emailVerificationStatus?: PortalEmailVerificationStatus;
   roleAssignments: RoleAssignment[];
   activeRoleId: RoleId;
   experienceTheme: ExperienceTheme;
@@ -113,7 +118,10 @@ export type PortalActor = {
   semutId: string;
   partnerExternalId: string;
   userExternalId?: string;
+  portalLogin: string;
   portalStatus: 'partner_only' | 'portal_ready';
+  emailRequired: boolean;
+  emailVerificationStatus: PortalEmailVerificationStatus;
   koloniCode: string;
   wilayahCode: string;
 };

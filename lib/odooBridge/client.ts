@@ -123,10 +123,10 @@ async function createJson2Client(config: OdooBridgeConfig): Promise<OdooBridgeCl
       return json2Call<T>(config, model, method, { ids: args[0] || [], ...kwargs });
     }
     if (method === 'create') {
-      return json2Call<T>(config, model, method, { vals_list: args[0] });
+      return json2Call<T>(config, model, method, { vals_list: args[0], ...kwargs });
     }
     if (method === 'write') {
-      return json2Call<T>(config, model, method, { ids: args[0] || [], values: args[1] || {} });
+      return json2Call<T>(config, model, method, { ids: args[0] || [], values: args[1] || {}, ...kwargs });
     }
     if (method === 'message_post') {
       return json2Call<T>(config, model, method, { ids: args[0] || [], ...kwargs });

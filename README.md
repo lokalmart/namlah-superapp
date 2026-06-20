@@ -4,7 +4,8 @@ Dummy frontend showcase untuk konsep superapp Namlah. Repo ini berdiri sendiri d
 
 ## Fokus
 
-- Semut-ID dummy dengan PIN 4 digit.
+- Semut-ID portal dengan PIN 4 digit.
+- User baru langsung mendapat portal login internal berbasis Semut-ID; email bersifat opsional dan tidak menjadi syarat verifikasi awal.
 - Semut-ID baru wajib memilih koloni awal sebelum role `member` aktif.
 - Beranda fullscreen peta konseptual koloni.
 - Role-ID yang mengubah tema, aktivitas, dan aksi utama.

@@ -1,5 +1,6 @@
 import { roleConfigs } from './mockData';
 import { defaultKoloniCode, defaultWilayahCode, getKoloniNode } from './koloni';
+import { makePortalIdentity } from './portalIdentity';
 import type { ExperienceTheme, RoleAssignment, RoleId, SemutAccount } from './types';
 
 const ACCOUNT_KEY = 'namlah_superapp_semut_account';
@@ -45,8 +46,12 @@ export function loadAccount(): SemutAccount | null {
     const activeRoleId = cleanAssignments.some((assignment) => assignment.roleId === parsed.activeRoleId)
       ? parsed.activeRoleId
       : cleanAssignments[0]?.roleId || 'member';
+    const portal = makePortalIdentity(parsed.semutId);
     return {
       ...parsed,
+      portalLogin: parsed.portalLogin || portal.portalLogin,
+      portalStatus: parsed.portalStatus || portal.portalStatus,
+      emailVerificationStatus: parsed.emailVerificationStatus || portal.emailVerificationStatus,
       roleAssignments: cleanAssignments.length ? cleanAssignments : [makeRoleAssignment('member', parsed.pinHashDemo)],
       activeRoleId,
       experienceTheme: parsed.experienceTheme || 'game',

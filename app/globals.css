@@ -2254,3 +2254,626 @@ body {
     display: none;
   }
 }
+
+/* Role-aware shell refresh */
+.role-context-dock {
+  position: absolute;
+  z-index: 8;
+  top: max(12px, env(safe-area-inset-top));
+  left: 18px;
+  right: 18px;
+  display: grid;
+  grid-template-columns: minmax(190px, 0.85fr) minmax(170px, 0.6fr) minmax(190px, 0.72fr) minmax(260px, 1.25fr);
+  gap: 8px;
+  padding: 8px;
+  color: var(--ink);
+  background: rgba(255, 253, 247, 0.95);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 14px 36px rgba(20, 32, 24, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.context-summary,
+.context-stage {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  align-content: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--role) 7%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 18%, white);
+}
+
+.context-summary strong,
+.context-stage strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--role);
+  font-size: 15px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-summary p,
+.context-stage p {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-kicker,
+.context-stage span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.role-switcher {
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 1px;
+}
+
+.quick-role {
+  flex: 0 0 auto;
+  min-width: 92px;
+  min-height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 9px;
+  color: color-mix(in srgb, var(--role-chip, var(--role)) 70%, black);
+  background: white;
+  border: 1px solid color-mix(in srgb, var(--role-chip, var(--role)) 24%, white);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.quick-role.active {
+  color: white;
+  background: var(--role);
+  border-color: var(--role);
+}
+
+.quick-role.owned {
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--role-chip, var(--role)) 42%, transparent);
+}
+
+.quick-role.manage {
+  color: var(--ink);
+  background: var(--field);
+}
+
+.superapp .screen-panel {
+  inset: calc(max(12px, env(safe-area-inset-top)) + 88px) 18px 92px;
+}
+
+.map-screen {
+  color: var(--ink);
+  background: rgba(255, 253, 247, 0.94);
+}
+
+.map-screen-header {
+  align-items: flex-start;
+}
+
+.map-screen-header .muted {
+  margin: 0;
+  font-size: 13px;
+}
+
+.map-workbench {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(340px, 0.72fr);
+  gap: 14px;
+}
+
+.real-map-card {
+  position: relative;
+  min-height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #e8ece6;
+  box-shadow: 0 14px 32px rgba(20, 32, 24, 0.12);
+}
+
+.real-map-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.map-source-chip {
+  position: absolute;
+  z-index: 2;
+  left: 12px;
+  top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  color: var(--ink);
+  background: rgba(255, 253, 247, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.map-pin-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.real-map-pin {
+  position: absolute;
+  max-width: min(210px, 42%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: rgba(255, 253, 247, 0.95);
+  border: 1px solid color-mix(in srgb, var(--role) 30%, white);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(20, 32, 24, 0.18);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+}
+
+.real-map-pin svg {
+  flex: 0 0 auto;
+  color: var(--role);
+}
+
+.real-map-pin span,
+.real-map-pin strong,
+.real-map-pin small {
+  min-width: 0;
+  display: block;
+}
+
+.real-map-pin strong {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.real-map-pin small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.real-map-pin.hot {
+  border-color: var(--role);
+}
+
+.role-work-panel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  gap: 10px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.stage-focus-card,
+.trace-card,
+.activity-feed {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 247, 0.96);
+  box-shadow: 0 12px 28px rgba(20, 32, 24, 0.1);
+}
+
+.stage-focus-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--role) 9%, white);
+}
+
+.stage-focus-card span,
+.trace-card-head span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.stage-focus-card strong {
+  display: block;
+  margin: 5px 0 4px;
+  color: var(--role);
+  font-size: 22px;
+  line-height: 1.05;
+}
+
+.stage-focus-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.stage-focus-card button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  color: white;
+  background: var(--role);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.role-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.role-stat-grid article {
+  min-height: 70px;
+  display: grid;
+  align-content: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.role-stat-grid strong {
+  color: var(--role);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.role-stat-grid span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.trace-card,
+.activity-feed {
+  padding: 12px;
+}
+
+.trace-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.trace-card-head strong {
+  color: var(--role);
+  font-size: 13px;
+}
+
+.trace-list {
+  display: grid;
+  grid-template-columns: minmax(76px, auto) minmax(0, 1fr);
+  gap: 6px 10px;
+}
+
+.trace-list span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.trace-list strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.role-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.role-action-grid button {
+  min-height: 74px;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  padding: 10px;
+  color: var(--ink);
+  text-align: left;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.role-action-grid strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.role-action-grid span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.activity-feed {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.activity-feed-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.activity-feed-row svg {
+  flex: 0 0 auto;
+  color: var(--role);
+}
+
+.activity-feed-row strong,
+.activity-feed-row span {
+  display: block;
+}
+
+.activity-feed-row strong {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.activity-feed-row span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.contact-action-row {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.portal-preview {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 10px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--role) 8%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 22%, white);
+  border-radius: 8px;
+}
+
+.portal-preview span,
+.portal-preview small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.portal-preview strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--role);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.contact-action-row a,
+.contact-mini-card a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 10px;
+  color: var(--role);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--role) 9%, white);
+  border: 1px solid color-mix(in srgb, var(--role) 24%, white);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.portal-map.compact {
+  margin-bottom: 0;
+}
+
+.mission-toolbar {
+  grid-template-columns: minmax(240px, 1fr) minmax(190px, 0.72fr) minmax(210px, 0.78fr) minmax(250px, 1fr);
+}
+
+.data-source-card strong {
+  color: var(--role);
+}
+
+.contact-mini-card nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.contact-mini-card a {
+  min-height: 30px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+@media (max-width: 1180px) {
+  .role-context-dock {
+    grid-template-columns: minmax(180px, 0.85fr) minmax(160px, 0.62fr) minmax(220px, 1fr);
+  }
+
+  .context-source {
+    display: none;
+  }
+
+  .mission-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .role-context-dock {
+    grid-template-columns: minmax(170px, 0.75fr) minmax(0, 1.25fr);
+  }
+
+  .context-stage {
+    display: none;
+  }
+
+  .role-switcher {
+    justify-content: flex-start;
+  }
+
+  .superapp .screen-panel {
+    inset: calc(max(12px, env(safe-area-inset-top)) + 78px) 12px 88px;
+  }
+
+  .map-workbench,
+  .scan-layout,
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .real-map-card {
+    min-height: 380px;
+  }
+}
+
+@media (max-width: 640px) {
+  .role-context-dock {
+    left: 10px;
+    right: 10px;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .context-summary {
+    min-height: 56px;
+  }
+
+  .role-switcher {
+    padding-bottom: 2px;
+  }
+
+  .quick-role {
+    min-width: 78px;
+    min-height: 42px;
+    font-size: 10px;
+  }
+
+  .quick-role.manage {
+    min-width: 84px;
+  }
+
+  .superapp .screen-panel {
+    inset: calc(max(10px, env(safe-area-inset-top)) + 118px) 10px 84px;
+    padding: 12px;
+  }
+
+  .screen-header {
+    display: grid;
+  }
+
+  .map-screen-header .role-badge {
+    width: fit-content;
+  }
+
+  .map-workbench {
+    gap: 10px;
+  }
+
+  .real-map-card {
+    min-height: 300px;
+  }
+
+  .map-source-chip {
+    top: 8px;
+    left: 8px;
+    height: 30px;
+    font-size: 11px;
+  }
+
+  .real-map-pin {
+    max-width: 160px;
+    padding: 7px 8px;
+  }
+
+  .real-map-pin strong {
+    font-size: 11px;
+  }
+
+  .role-stat-grid,
+  .role-action-grid,
+  .mission-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-focus-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stage-focus-card button {
+    justify-content: center;
+    width: 100%;
+  }
+}

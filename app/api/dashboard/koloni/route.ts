@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       return NextResponse.json(dashboard, {
         headers: {
           'Cache-Control': 'no-store',
+          'x-namlah-dashboard-source': 'odoo_live',
         },
       });
     } catch (error) {
@@ -39,6 +40,7 @@ export async function GET(request: Request) {
         status: 502,
         headers: {
           'Cache-Control': 'no-store',
+          'x-namlah-dashboard-source': 'odoo_error',
         },
       });
     }
@@ -47,6 +49,7 @@ export async function GET(request: Request) {
   return NextResponse.json(buildKoloniDashboard(role, koloniCode, activeView), {
     headers: {
       'Cache-Control': 'no-store',
+      'x-namlah-dashboard-source': 'demo_local',
     },
   });
 }

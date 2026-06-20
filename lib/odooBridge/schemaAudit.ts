@@ -65,6 +65,16 @@ const requiredModels: ModelSpec[] = [
     ],
   },
   {
+    model: 'res.users',
+    fields: [
+      { name: 'name', type: 'char' },
+      { name: 'login', type: 'char' },
+      { name: 'partner_id', type: 'many2one', relation: 'res.partner' },
+      { name: 'groups_id', type: 'many2many', relation: 'res.groups' },
+      { name: 'active', type: 'boolean' },
+    ],
+  },
+  {
     model: 'project.project',
     fields: [
       { name: 'name', type: 'char' },

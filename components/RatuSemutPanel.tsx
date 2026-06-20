@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, ClipboardCheck, Crown, FileBarChart, KanbanSquare, Landmark, Play, RefreshCcw, ShieldCheck, ShoppingCart, Sparkles, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, ClipboardCheck, Crown, Database, FileBarChart, KanbanSquare, Landmark, Mail, Phone, Play, RefreshCcw, ShieldCheck, ShoppingCart, Sparkles, type LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { describeKoloniPolicy, getKoloniNode, getKoloniScope } from '../lib/koloni';
 import { buildKoloniDashboard, stagesForFlow } from '../lib/projectControlTower';
@@ -25,6 +25,14 @@ const viewButtons: Array<{ id: NamlahRatuView; label: string; icon: LucideIcon }
   { id: 'balance_sheet', label: 'Balance Sheet', icon: FileBarChart },
 ];
 
+type DashboardSource = 'demo_local' | 'odoo_live' | 'odoo_error_fallback';
+
+const dashboardSourceCopy: Record<DashboardSource, { label: string; detail: string }> = {
+  demo_local: { label: 'Demo lokal', detail: 'Data fallback showcase, belum membaca database.' },
+  odoo_live: { label: 'Odoo live', detail: 'Dashboard dibaca dari bridge Odoo.' },
+  odoo_error_fallback: { label: 'Fallback lokal', detail: 'Bridge Odoo gagal, data demo sedang dipakai.' },
+};
+
 export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
   const assignment = getActiveRoleAssignment(account);
   const koloniCode = assignment?.koloniCode;
@@ -34,6 +42,7 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
   const [activeView, setActiveView] = useState<NamlahRatuView>('kanban');
   const [flow, setFlow] = useState<NamlahKanbanFlow>('umkm_onboarding');
   const [dashboard, setDashboard] = useState<NamlahKoloniDashboard>(() => buildKoloniDashboard(account.activeRoleId, koloniCode, 'kanban'));
+  const [dashboardSource, setDashboardSource] = useState<DashboardSource>('demo_local');
   const [lastAction, setLastAction] = useState('Dashboard Ratu Semut siap.');
   const [syncing, setSyncing] = useState(false);
   const visibleStages = useMemo(() => stagesForFlow(flow), [flow]);
@@ -46,6 +55,7 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
     let active = true;
 
     async function loadDashboard() {
+      let nextSource: DashboardSource = 'demo_local';
       try {
         const params = new URLSearchParams({
           role: account.activeRoleId,
@@ -53,15 +63,19 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
         });
         if (koloniCode) params.set('koloniCode', koloniCode);
         const response = await fetch(`/api/ratu/dashboard?${params.toString()}`, { cache: 'no-store' });
+        const sourceHeader = response.headers.get('x-namlah-dashboard-source');
+        nextSource = sourceHeader === 'odoo_live' ? 'odoo_live' : sourceHeader === 'odoo_error' ? 'odoo_error_fallback' : 'demo_local';
         if (!response.ok) throw new Error('dashboard failed');
         const nextDashboard = await response.json() as NamlahKoloniDashboard;
         if (active) {
           setDashboard(nextDashboard);
+          setDashboardSource(nextSource);
           setLastAction(`Sinkron ${nextDashboard.koloniCode}`);
         }
       } catch {
         if (active) {
           setDashboard(buildKoloniDashboard(account.activeRoleId, koloniCode, activeView));
+          setDashboardSource(nextSource);
           setLastAction('Fallback ke data demo lokal.');
         }
       }
@@ -114,6 +128,24 @@ export function RatuSemutPanel({ account, role }: RatuSemutPanelProps) {
             <div>
               <strong>{koloniScope.label}</strong>
               <span>{dashboard.koloniCode} / {dashboard.wilayahCode} / {dashboard.generatedAt}</span>
+            </div>
+          </div>
+          <div className="mission-sync-card data-source-card">
+            <Database size={20} />
+            <div>
+              <strong>{dashboardSourceCopy[dashboardSource].label}</strong>
+              <span>{dashboardSourceCopy[dashboardSource].detail}</span>
+            </div>
+          </div>
+          <div className="mission-sync-card contact-mini-card">
+            <Crown size={20} />
+            <div>
+              <strong>{koloniPolicy.primaryRatuName}</strong>
+              <span>{koloniPolicy.primaryRatuSemutId}</span>
+              <nav aria-label="Kontak Ratu Koloni">
+                <a href={`tel:${koloniPolicy.primaryRatuPhone}`}><Phone size={14} /> Telepon</a>
+                <a href={`mailto:${koloniPolicy.primaryRatuEmail}`}><Mail size={14} /> Email</a>
+              </nav>
             </div>
           </div>
           <div className="mission-actions">

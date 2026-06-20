@@ -5,8 +5,8 @@ import { AccountPanel } from '../components/AccountPanel';
 import { AuthGate } from '../components/AuthGate';
 import { BottomNav, getAllowedTabs } from '../components/BottomNav';
 import { ConceptMap } from '../components/ConceptMap';
-import { QueenMascot } from '../components/QueenMascot';
 import { RatuSemutPanel } from '../components/RatuSemutPanel';
+import { RoleContextBar } from '../components/RoleContextBar';
 import { ScanPanel } from '../components/ScanPanel';
 import { StorePanel } from '../components/StorePanel';
 import { roleConfigs } from '../lib/mockData';
@@ -48,13 +48,19 @@ export default function Page() {
 
   return (
     <main className={`superapp theme-${account.experienceTheme}`} style={{ ['--role' as string]: activeRole.theme }}>
+      <RoleContextBar
+        account={account}
+        role={activeRole}
+        activeTab={activeTab}
+        onAccountChange={setAccount}
+        onTabChange={setActiveTab}
+      />
       {activeTab === 'map' && <ConceptMap account={account} role={activeRole} />}
       {activeTab === 'store' && <StorePanel account={account} role={activeRole} />}
       {activeTab === 'ratu' && account.activeRoleId === 'admin' && <RatuSemutPanel account={account} role={activeRole} />}
       {activeTab === 'scan' && <ScanPanel account={account} role={activeRole} />}
       {activeTab === 'account' && <AccountPanel account={account} role={activeRole} onChange={setAccount} onLogout={() => setAccount(null)} />}
 
-      <QueenMascot role={activeRole} activeTab={activeTab} />
       <BottomNav activeTab={activeTab} activeRoleId={account.activeRoleId} onTabChange={setActiveTab} />
     </main>
   );

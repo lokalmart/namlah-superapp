@@ -1,17 +1,21 @@
 import type { OdooCustomField, PortalActor, RoleId, SemutAccount, SourceOfTruthRecord, StageSopGuide } from './types';
 import { defaultKoloniCode, getKoloniNode } from './koloni';
+import { makePortalIdentity } from './portalIdentity';
 
 export const compatibilityKoloniCode = defaultKoloniCode;
 
 export function makePortalActor(account: SemutAccount): PortalActor {
-  const cleanSemutId = account.semutId.toLowerCase().replace(/[^a-z0-9]+/g, '_');
   const activeAssignment = account.roleAssignments.find((assignment) => assignment.roleId === account.activeRoleId) || account.roleAssignments[0];
   const koloni = getKoloniNode(activeAssignment?.koloniCode);
+  const portal = makePortalIdentity(account.semutId);
   return {
     semutId: account.semutId,
-    partnerExternalId: `namlah_partner.${cleanSemutId}`,
-    userExternalId: `namlah_portal.${cleanSemutId}`,
-    portalStatus: 'partner_only',
+    partnerExternalId: portal.partnerExternalId,
+    userExternalId: portal.userExternalId,
+    portalLogin: account.portalLogin || portal.portalLogin,
+    portalStatus: account.portalStatus || portal.portalStatus,
+    emailRequired: portal.emailRequired,
+    emailVerificationStatus: account.emailVerificationStatus || portal.emailVerificationStatus,
     koloniCode: koloni.code,
     wilayahCode: koloni.wilayahCode,
   };

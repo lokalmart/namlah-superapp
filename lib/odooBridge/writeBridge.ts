@@ -1,4 +1,5 @@
 import type { NamlahControlTask, NamlahOdooEnvelope } from '../types';
+import { makePortalIdentity } from '../portalIdentity';
 import { areOdooWritesEnabled, isOdooBridgeLive, safeErrorMessage } from './config';
 import { createOdooBridgeClient, type OdooBridgeClient } from './client';
 
@@ -56,7 +57,8 @@ async function findFirst(client: OdooBridgeClient, model: string, domain: unknow
 
 async function upsertPartner(client: OdooBridgeClient, envelope: NamlahOdooEnvelope) {
   const semutId = envelope.actorSemutId;
-  const externalId = `namlah_partner.${cleanExternalSuffix(semutId)}`;
+  const portal = makePortalIdentity(semutId);
+  const externalId = portal.partnerExternalId;
   const existingExternal = await findByExternalId(client, externalId);
   const existingId = existingExternal?.res_id || await findFirst(client, 'res.partner', [['ref', '=', semutId]]);
   const values = {
@@ -73,6 +75,61 @@ async function upsertPartner(client: OdooBridgeClient, envelope: NamlahOdooEnvel
   const id = await client.create('res.partner', values);
   await client.ensureExternalId(externalId, 'res.partner', id);
   return { model: 'res.partner', id, externalId };
+}
+
+async function getPortalGroupId(client: OdooBridgeClient) {
+  const portalGroup = await client.resolveExternalId('base.group_portal');
+  if (!portalGroup?.res_id || portalGroup.model !== 'res.groups') {
+    throw new Error('Odoo portal group base.group_portal tidak ditemukan.');
+  }
+  return portalGroup.res_id;
+}
+
+async function upsertPortalUser(client: OdooBridgeClient, envelope: NamlahOdooEnvelope, partnerId: number) {
+  const portal = makePortalIdentity(envelope.actorSemutId);
+  const login = String(envelope.fields.portal_login || envelope.fields.login || portal.portalLogin);
+  const externalId = portal.userExternalId;
+  const portalGroupId = await getPortalGroupId(client);
+  const existingExternal = await findByExternalId(client, externalId);
+  const existingId = existingExternal?.res_id || await findFirst(client, 'res.users', [['login', '=', login]]);
+
+  if (existingId) {
+    await client.executeKw('res.users', 'write', [[existingId], {
+      name: envelope.fields.name || envelope.actorSemutId,
+      active: true,
+      groups_id: [[4, portalGroupId]],
+    }], {
+      context: {
+        no_reset_password: true,
+        mail_create_nosubscribe: true,
+        tracking_disable: true,
+      },
+    });
+    await client.ensureExternalId(externalId, 'res.users', existingId);
+    return { model: 'res.users', id: existingId, externalId };
+  }
+
+  const id = await client.executeKw<number>('res.users', 'create', [{
+    name: envelope.fields.name || envelope.actorSemutId,
+    login,
+    partner_id: partnerId,
+    active: true,
+    groups_id: [[6, 0, [portalGroupId]]],
+  }], {
+    context: {
+      no_reset_password: true,
+      mail_create_nosubscribe: true,
+      tracking_disable: true,
+    },
+  });
+  await client.ensureExternalId(externalId, 'res.users', id);
+  return { model: 'res.users', id, externalId };
+}
+
+async function upsertPortalActor(client: OdooBridgeClient, envelope: NamlahOdooEnvelope) {
+  const partner = await upsertPartner(client, envelope);
+  const user = await upsertPortalUser(client, envelope, partner.id);
+  return [partner, user];
 }
 
 async function resolveStageId(client: OdooBridgeClient, stageCode?: string) {
@@ -211,7 +268,7 @@ async function executePayload(client: OdooBridgeClient, payload: GatewayPayload)
   const envelope = payload.odoo;
   if (!envelope) return [];
 
-  if (envelope.targetModel === 'res.partner') return [await upsertPartner(client, envelope)];
+  if (envelope.targetModel === 'res.partner') return upsertPortalActor(client, envelope);
   if (envelope.targetModel === 'project.project') {
     const project = await upsertProject(client, envelope);
     const taskRecords = payload.tasks?.length ? await upsertTaskBlueprints(client, payload.tasks, project.id) : [];

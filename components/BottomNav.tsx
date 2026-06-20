@@ -15,15 +15,51 @@ export const baseTabs: Array<{ id: AppTab; label: string; icon: LucideIcon }> = 
 ];
 
 export function getAllowedTabs(activeRoleId: RoleId): Array<{ id: AppTab; label: string; icon: LucideIcon }> {
-  if (activeRoleId === 'admin') {
-    return [
-      { id: 'map', label: 'Map', icon: Map },
-      { id: 'ratu', label: 'Ratu Semut', icon: Crown },
+  const roleTabs: Partial<Record<RoleId, Array<{ id: AppTab; label: string; icon: LucideIcon }>>> = {
+    member: [
+      { id: 'map', label: 'Koloni', icon: Map },
+      { id: 'store', label: 'Belanja', icon: Store },
+      { id: 'scan', label: 'Bukti', icon: ScanBarcode },
+      { id: 'account', label: 'Akun', icon: UserRound },
+    ],
+    surveyor: [
+      { id: 'map', label: 'Lokasi', icon: Map },
+      { id: 'store', label: 'Survey', icon: Store },
+      { id: 'scan', label: 'Bukti', icon: ScanBarcode },
+      { id: 'account', label: 'Akun', icon: UserRound },
+    ],
+    kurir: [
+      { id: 'map', label: 'Rute', icon: Map },
+      { id: 'store', label: 'Paket', icon: Store },
+      { id: 'scan', label: 'Proof', icon: ScanBarcode },
+      { id: 'account', label: 'Akun', icon: UserRound },
+    ],
+    kasir: [
+      { id: 'map', label: 'Pos', icon: Map },
+      { id: 'store', label: 'POS', icon: Store },
       { id: 'scan', label: 'Scan', icon: ScanBarcode },
       { id: 'account', label: 'Akun', icon: UserRound },
-    ];
-  }
-  return baseTabs;
+    ],
+    umkm: [
+      { id: 'map', label: 'Usaha', icon: Map },
+      { id: 'store', label: 'Produk', icon: Store },
+      { id: 'scan', label: 'Bukti', icon: ScanBarcode },
+      { id: 'account', label: 'Akun', icon: UserRound },
+    ],
+    admin: [
+      { id: 'map', label: 'Koloni', icon: Map },
+      { id: 'ratu', label: 'Ratu', icon: Crown },
+      { id: 'scan', label: 'Audit', icon: ScanBarcode },
+      { id: 'account', label: 'Akun', icon: UserRound },
+    ],
+    koperasi: [
+      { id: 'map', label: 'Koloni', icon: Map },
+      { id: 'store', label: 'Program', icon: Store },
+      { id: 'scan', label: 'Bukti', icon: ScanBarcode },
+      { id: 'account', label: 'Akun', icon: UserRound },
+    ],
+  };
+  return roleTabs[activeRoleId] || baseTabs;
 }
 
 export function BottomNav({ activeTab, activeRoleId, onTabChange }: BottomNavProps) {

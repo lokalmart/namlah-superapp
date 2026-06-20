@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   if (isOdooBridgeLive()) {
     try {
       const dashboard = await buildLiveKoloniDashboard('admin', koloniCode, activeView);
-      return NextResponse.json(dashboard, { headers: { 'Cache-Control': 'no-store' } });
+      return NextResponse.json(dashboard, { headers: { 'Cache-Control': 'no-store', 'x-namlah-dashboard-source': 'odoo_live' } });
     } catch (error) {
       return NextResponse.json({
         ok: false,
@@ -30,12 +30,12 @@ export async function GET(request: Request) {
         fallbackAvailable: true,
       }, {
         status: 502,
-        headers: { 'Cache-Control': 'no-store' },
+        headers: { 'Cache-Control': 'no-store', 'x-namlah-dashboard-source': 'odoo_error' },
       });
     }
   }
 
   return NextResponse.json(buildKoloniDashboard('admin', koloniCode, activeView), {
-    headers: { 'Cache-Control': 'no-store' },
+    headers: { 'Cache-Control': 'no-store', 'x-namlah-dashboard-source': 'demo_local' },
   });
 }

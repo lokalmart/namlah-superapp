@@ -1,4 +1,4 @@
-import { Crown, Gamepad2, LogOut, Plus, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
+import { Crown, Gamepad2, LogOut, Mail, Phone, Plus, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
 import { useState } from 'react';
 import { PinPad } from './PinPad';
 import { defaultKoloniCode, describeKoloniPolicy, getJoinableKoloniNodes, getKoloniNode, getKoloniScope } from '../lib/koloni';
@@ -98,6 +98,10 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
               <strong>{actor.partnerExternalId}</strong>
               <span>res.users portal</span>
               <strong>{actor.userExternalId}</strong>
+              <span>portal login</span>
+              <strong>{actor.portalLogin}</strong>
+              <span>verifikasi email</span>
+              <strong>{actor.emailRequired ? actor.emailVerificationStatus : 'tidak wajib'}</strong>
               <span>koloni / wilayah</span>
               <strong>{actor.koloniCode} / {actor.wilayahCode}</strong>
               <span>role aktif</span>
@@ -129,6 +133,30 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
             <div className="field-pill-row stacked">
               {taskFields.map((field) => <span key={field.name}>task: {field.name}</span>)}
               {orderFields.map((field) => <span key={field.name}>order: {field.name}</span>)}
+            </div>
+          </div>
+
+          <div className="account-card contact-card">
+            <p className="small-label">Kontak Ratu Koloni</p>
+            <h3>{activeKoloniPolicy.primaryRatuName}</h3>
+            <p className="muted">{activeKoloni.name} / {activeKoloniPolicy.primaryRatuSemutId}</p>
+            <div className="contact-action-row">
+              <a href={`tel:${activeKoloniPolicy.primaryRatuPhone}`}>
+                <Phone size={16} />
+                {activeKoloniPolicy.primaryRatuPhone}
+              </a>
+              <a href={`mailto:${activeKoloniPolicy.primaryRatuEmail}`}>
+                <Mail size={16} />
+                {activeKoloniPolicy.primaryRatuEmail}
+              </a>
+            </div>
+            <div className="portal-map compact">
+              <span>koloni</span>
+              <strong>{activeKoloni.code}</strong>
+              <span>wilayah</span>
+              <strong>{activeKoloni.geoAreaName}</strong>
+              <span>sumber kontak</span>
+              <strong>konfigurasi koloni lokal</strong>
             </div>
           </div>
 
