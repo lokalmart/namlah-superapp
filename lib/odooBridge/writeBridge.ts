@@ -496,6 +496,11 @@ async function executePayload(client: OdooBridgeClient, payload: GatewayPayload)
     const taskRecords = payload.tasks?.length ? await upsertTaskBlueprints(client, payload.tasks, project.id) : [];
     return [project, ...taskRecords];
   }
+  if (envelope.targetModel === 'project.task' && payload.tasks?.length) {
+    const project = await upsertProject(client, envelope);
+    const taskRecords = await upsertTaskBlueprints(client, payload.tasks, project.id);
+    return [project, ...taskRecords];
+  }
   if (envelope.targetModel === 'project.task.proof') return submitTaskProof(client, payload);
   if (payload.task) return updateTaskStatus(client, payload);
   if (payload.tasks?.length) return upsertTaskBlueprints(client, payload.tasks);
