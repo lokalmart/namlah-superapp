@@ -1,7 +1,7 @@
 import type { NamlahControlTask, NamlahOdooEnvelope } from '../types';
 import { makePortalIdentity } from '../portalIdentity';
 import { areOdooWritesEnabled, isOdooBridgeLive, safeErrorMessage } from './config';
-import { createOdooBridgeClient, type OdooBridgeClient } from './client';
+import { createOdooBridgeClient, type OdooBridgeClient, type OdooFieldMap } from './client';
 
 type GatewayPayload = {
   ok?: boolean;
@@ -56,14 +56,45 @@ async function findByExternalId(client: OdooBridgeClient, externalId?: string) {
   return client.resolveExternalId(externalId);
 }
 
+function isInvalidFieldError(error: unknown) {
+  const message = safeErrorMessage(error);
+  return /Invalid field '.+' on model '.+'/.test(message);
+}
+
 async function findFirst(client: OdooBridgeClient, model: string, domain: unknown[], fields: string[] = ['id']) {
-  const rows = await client.searchRead<{ id: number }>(model, domain, fields, { limit: 1 });
+  let rows: Array<{ id: number }>;
+  try {
+    rows = await client.searchRead<{ id: number }>(model, domain, fields, { limit: 1 });
+  } catch (error) {
+    if (isInvalidFieldError(error)) return undefined;
+    throw error;
+  }
   return rows[0]?.id;
 }
 
-async function filterWritableValues(client: OdooBridgeClient, model: string, values: Record<string, unknown>) {
+const fieldCache = new WeakMap<OdooBridgeClient, Map<string, OdooFieldMap>>();
+
+async function getModelFields(client: OdooBridgeClient, model: string) {
+  let modelCache = fieldCache.get(client);
+  if (!modelCache) {
+    modelCache = new Map();
+    fieldCache.set(client, modelCache);
+  }
+
+  const cached = modelCache.get(model);
+  if (cached) return cached;
+
   const fields = await client.fieldsGet(model);
-  return Object.fromEntries(Object.entries(values).filter(([key]) => Boolean(fields[key])));
+  modelCache.set(model, fields);
+  return fields;
+}
+
+async function filterWritableValues(client: OdooBridgeClient, model: string, values: Record<string, unknown>) {
+  const fields = await getModelFields(client, model);
+  return Object.fromEntries(Object.entries(values).filter(([key, value]) => {
+    const field = fields[key];
+    return value !== undefined && Boolean(field) && !field.readonly;
+  }));
 }
 
 async function upsertPartner(client: OdooBridgeClient, envelope: NamlahOdooEnvelope) {
@@ -72,10 +103,10 @@ async function upsertPartner(client: OdooBridgeClient, envelope: NamlahOdooEnvel
   const externalId = portal.partnerExternalId;
   const existingExternal = await findByExternalId(client, externalId);
   const existingId = existingExternal?.res_id || await findFirst(client, 'res.partner', [['ref', '=', semutId]]);
-  const values = {
+  const values = await filterWritableValues(client, 'res.partner', {
     name: envelope.fields.name || semutId,
     ref: semutId,
-  };
+  });
 
   if (existingId) {
     await client.write('res.partner', [existingId], values);
@@ -156,7 +187,7 @@ async function upsertProject(client: OdooBridgeClient, envelope: NamlahOdooEnvel
   const externalId = `namlah_project.${cleanExternalSuffix(code)}`;
   const existingExternal = await findByExternalId(client, externalId);
   const existingId = existingExternal?.res_id || await findFirst(client, 'project.project', [['x_namlah_plan_code', '=', code]]);
-  const values = { ...envelope.fields };
+  const values = await filterWritableValues(client, 'project.project', { ...envelope.fields });
 
   if (existingId) {
     await client.write('project.project', [existingId], values);
@@ -174,7 +205,7 @@ async function upsertTaskFromEnvelope(client: OdooBridgeClient, envelope: Namlah
   const externalId = `namlah_task.${cleanExternalSuffix(code)}`;
   const existingExternal = await findByExternalId(client, externalId);
   const existingId = existingExternal?.res_id || await findFirst(client, 'project.task', [['x_namlah_plan_code', '=', code], ['name', '=', envelope.fields.name || '']]);
-  const values = { ...envelope.fields };
+  const values: Record<string, unknown> = { ...envelope.fields };
   delete values.id;
   delete values.stage_id_external_id;
 
@@ -182,13 +213,15 @@ async function upsertTaskFromEnvelope(client: OdooBridgeClient, envelope: Namlah
   const stage = stageExternal ? await client.resolveExternalId(stageExternal) : null;
   if (stage?.model === 'project.task.type') values.stage_id = stage.res_id;
 
+  const cleanValues = await filterWritableValues(client, 'project.task', values);
+
   if (existingId) {
-    await client.write('project.task', [existingId], values);
+    await client.write('project.task', [existingId], cleanValues);
     await client.ensureExternalId(externalId, 'project.task', existingId);
     return { model: 'project.task', id: existingId, externalId };
   }
 
-  const id = await client.create('project.task', values);
+  const id = await client.create('project.task', cleanValues);
   await client.ensureExternalId(externalId, 'project.task', id);
   return { model: 'project.task', id, externalId };
 }
@@ -395,18 +428,18 @@ async function upsertTaskBlueprints(client: OdooBridgeClient, tasks: NamlahContr
       x_namlah_mobile_status: task.mobileStatus,
       x_namlah_proof_status: task.proofStatus,
     };
-    Object.keys(values).forEach((key) => values[key] === undefined && delete values[key]);
+    const cleanValues = await filterWritableValues(client, 'project.task', values);
 
     const existingId = existingExternal?.res_id || await findFirst(client, 'project.task', [['x_namlah_plan_code', '=', task.planCode], ['name', '=', task.title]]);
     if (existingId) {
-      await client.write('project.task', [existingId], values);
+      await client.write('project.task', [existingId], cleanValues);
       await client.ensureExternalId(externalId, 'project.task', existingId);
       taskIdMap.set(task.id, existingId);
       records.push({ model: 'project.task', id: existingId, externalId });
       continue;
     }
 
-    const id = await client.create('project.task', values);
+    const id = await client.create('project.task', cleanValues);
     await client.ensureExternalId(externalId, 'project.task', id);
     taskIdMap.set(task.id, id);
     records.push({ model: 'project.task', id, externalId });
@@ -430,8 +463,8 @@ async function updateTaskStatus(client: OdooBridgeClient, payload: GatewayPayloa
     x_namlah_semut_id: payload.task.semutId,
     x_namlah_role_code: payload.task.roleCode,
   };
-  Object.keys(values).forEach((key) => values[key] === undefined && delete values[key]);
-  await client.write('project.task', [taskId], values);
+  const cleanValues = await filterWritableValues(client, 'project.task', values);
+  if (Object.keys(cleanValues).length) await client.write('project.task', [taskId], cleanValues);
   return [{ model: 'project.task', id: taskId, externalId }];
 }
 
@@ -443,7 +476,8 @@ async function submitTaskProof(client: OdooBridgeClient, payload: GatewayPayload
   if (!existing?.res_id) throw new Error(`Task Odoo tidak ditemukan untuk proof ${externalId}.`);
 
   const proofStatus = payload.proof?.status || payload.odoo?.fields.x_namlah_proof_status || 'submitted';
-  await client.write('project.task', [existing.res_id], { x_namlah_proof_status: proofStatus });
+  const values = await filterWritableValues(client, 'project.task', { x_namlah_proof_status: proofStatus });
+  if (Object.keys(values).length) await client.write('project.task', [existing.res_id], values);
   await client.executeKw('project.task', 'message_post', [[existing.res_id]], {
     body: payload.proof?.note || payload.odoo?.fields.note || 'Proof submitted from Namlah Superapp.',
     subtype_xmlid: 'mail.mt_note',
