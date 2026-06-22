@@ -233,3 +233,14 @@ export async function createOdooBridgeClient(): Promise<OdooBridgeClient> {
   if (config.apiMode === 'json2') return createJson2Client(config);
   return createXmlRpcClient(config);
 }
+
+export async function createOdooBridgeClientWithCredentials(username: string, password: string): Promise<OdooBridgeClient> {
+  const config = requireOdooBridgeConfig();
+  const credentialConfig = {
+    ...config,
+    username,
+    password,
+  };
+  if (credentialConfig.apiMode === 'json2') return createJson2Client(credentialConfig);
+  return createXmlRpcClient(credentialConfig);
+}

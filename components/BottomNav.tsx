@@ -1,4 +1,4 @@
-import { Crown, Map, ScanBarcode, Store, UserRound, type LucideIcon } from 'lucide-react';
+import { Activity, Crown, Map, MessageCircle, ShoppingBasket, UserRound, type LucideIcon } from 'lucide-react';
 import type { AppTab, RoleId } from '../lib/types';
 
 type BottomNavProps = {
@@ -8,55 +8,63 @@ type BottomNavProps = {
 };
 
 export const baseTabs: Array<{ id: AppTab; label: string; icon: LucideIcon }> = [
-  { id: 'map', label: 'Map', icon: Map },
-  { id: 'store', label: 'Gudang', icon: Store },
-  { id: 'scan', label: 'Scan', icon: ScanBarcode },
-  { id: 'account', label: 'Akun', icon: UserRound },
+  { id: 'map', label: 'Peta', icon: Map },
+  { id: 'store', label: 'Katalog', icon: ShoppingBasket },
+  { id: 'forum', label: 'Forum', icon: MessageCircle },
+  { id: 'scan', label: 'Aktivitas', icon: Activity },
+  { id: 'account', label: 'Profil', icon: UserRound },
 ];
 
 export function getAllowedTabs(activeRoleId: RoleId): Array<{ id: AppTab; label: string; icon: LucideIcon }> {
   const roleTabs: Partial<Record<RoleId, Array<{ id: AppTab; label: string; icon: LucideIcon }>>> = {
     member: [
-      { id: 'map', label: 'Koloni', icon: Map },
-      { id: 'store', label: 'Belanja', icon: Store },
-      { id: 'scan', label: 'Bukti', icon: ScanBarcode },
-      { id: 'account', label: 'Akun', icon: UserRound },
+      { id: 'map', label: 'Peta', icon: Map },
+      { id: 'store', label: 'Katalog', icon: ShoppingBasket },
+      { id: 'forum', label: 'Forum', icon: MessageCircle },
+      { id: 'scan', label: 'Aktivitas', icon: Activity },
+      { id: 'account', label: 'Profil', icon: UserRound },
     ],
     surveyor: [
-      { id: 'map', label: 'Lokasi', icon: Map },
-      { id: 'store', label: 'Survey', icon: Store },
-      { id: 'scan', label: 'Bukti', icon: ScanBarcode },
-      { id: 'account', label: 'Akun', icon: UserRound },
+      { id: 'map', label: 'Peta', icon: Map },
+      { id: 'store', label: 'Katalog', icon: ShoppingBasket },
+      { id: 'forum', label: 'Forum', icon: MessageCircle },
+      { id: 'scan', label: 'Aktivitas', icon: Activity },
+      { id: 'account', label: 'Profil', icon: UserRound },
     ],
     kurir: [
-      { id: 'map', label: 'Rute', icon: Map },
-      { id: 'store', label: 'Paket', icon: Store },
-      { id: 'scan', label: 'Proof', icon: ScanBarcode },
-      { id: 'account', label: 'Akun', icon: UserRound },
+      { id: 'map', label: 'Peta', icon: Map },
+      { id: 'store', label: 'Katalog', icon: ShoppingBasket },
+      { id: 'forum', label: 'Forum', icon: MessageCircle },
+      { id: 'scan', label: 'Aktivitas', icon: Activity },
+      { id: 'account', label: 'Profil', icon: UserRound },
     ],
     kasir: [
-      { id: 'map', label: 'Pos', icon: Map },
-      { id: 'store', label: 'POS', icon: Store },
-      { id: 'scan', label: 'Scan', icon: ScanBarcode },
-      { id: 'account', label: 'Akun', icon: UserRound },
+      { id: 'map', label: 'Peta', icon: Map },
+      { id: 'store', label: 'Katalog', icon: ShoppingBasket },
+      { id: 'forum', label: 'Forum', icon: MessageCircle },
+      { id: 'scan', label: 'Aktivitas', icon: Activity },
+      { id: 'account', label: 'Profil', icon: UserRound },
     ],
     umkm: [
-      { id: 'map', label: 'Usaha', icon: Map },
-      { id: 'store', label: 'Produk', icon: Store },
-      { id: 'scan', label: 'Bukti', icon: ScanBarcode },
-      { id: 'account', label: 'Akun', icon: UserRound },
+      { id: 'map', label: 'Peta', icon: Map },
+      { id: 'store', label: 'Katalog', icon: ShoppingBasket },
+      { id: 'forum', label: 'Forum', icon: MessageCircle },
+      { id: 'scan', label: 'Aktivitas', icon: Activity },
+      { id: 'account', label: 'Profil', icon: UserRound },
     ],
     admin: [
-      { id: 'map', label: 'Koloni', icon: Map },
+      { id: 'map', label: 'Peta', icon: Map },
+      { id: 'store', label: 'Katalog', icon: ShoppingBasket },
+      { id: 'forum', label: 'Forum', icon: MessageCircle },
       { id: 'ratu', label: 'Ratu', icon: Crown },
-      { id: 'scan', label: 'Audit', icon: ScanBarcode },
-      { id: 'account', label: 'Akun', icon: UserRound },
+      { id: 'account', label: 'Profil', icon: UserRound },
     ],
     koperasi: [
-      { id: 'map', label: 'Koloni', icon: Map },
-      { id: 'store', label: 'Program', icon: Store },
-      { id: 'scan', label: 'Bukti', icon: ScanBarcode },
-      { id: 'account', label: 'Akun', icon: UserRound },
+      { id: 'map', label: 'Peta', icon: Map },
+      { id: 'store', label: 'Katalog', icon: ShoppingBasket },
+      { id: 'forum', label: 'Forum', icon: MessageCircle },
+      { id: 'scan', label: 'Aktivitas', icon: Activity },
+      { id: 'account', label: 'Profil', icon: UserRound },
     ],
   };
   return roleTabs[activeRoleId] || baseTabs;

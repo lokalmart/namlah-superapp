@@ -1,7 +1,7 @@
 'use client';
 
-import { Coins, Loader2, PackageCheck, Send, ShoppingBag, Truck, Workflow } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Coins, Database, Loader2, PackageCheck, Search, Send, ShoppingBag, ShoppingCart, Truck, Workflow } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { getKoloniScope } from '../lib/koloni';
 import { getActiveRoleAssignment } from '../lib/storage';
 import type { NamlahProjectTemplateCode, RoleConfig, RoleId, SemutAccount } from '../lib/types';
@@ -14,6 +14,26 @@ type StorePanelProps = {
 type ActionStatus = {
   tone: 'idle' | 'success' | 'error';
   text: string;
+};
+
+type CatalogProduct = {
+  id: string;
+  odooId: number;
+  name: string;
+  code: string;
+  formattedPrice: string;
+  category: string;
+  uom: string;
+  stock?: number;
+  updatedAt: string;
+};
+
+type CatalogPayload = {
+  ok: boolean;
+  source?: string;
+  created?: number;
+  products?: CatalogProduct[];
+  error?: string;
 };
 
 const templateActions: Array<{
@@ -62,6 +82,10 @@ export function StorePanel({ account, role }: StorePanelProps) {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogSyncing, setCatalogSyncing] = useState(false);
+  const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
+  const [catalogError, setCatalogError] = useState('');
   const [status, setStatus] = useState<ActionStatus>({
     tone: 'idle',
     text: 'Aksi di halaman ini menulis ke Odoo bridge. Jika Odoo belum aktif, request akan ditolak eksplisit.',
@@ -109,6 +133,50 @@ export function StorePanel({ account, role }: StorePanelProps) {
     }
   }
 
+  async function loadCatalogProducts() {
+    setCatalogLoading(true);
+    setCatalogError('');
+    try {
+      const response = await fetch('/api/catalog/products', { cache: 'no-store' });
+      const payload = await response.json().catch(() => null) as CatalogPayload | null;
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || 'Katalog Odoo belum bisa dibaca.');
+      }
+      setCatalogProducts(payload.products || []);
+    } catch (event) {
+      setCatalogProducts([]);
+      setCatalogError(event instanceof Error ? event.message : 'Katalog Odoo belum bisa dibaca.');
+    } finally {
+      setCatalogLoading(false);
+    }
+  }
+
+  async function syncCatalogProducts() {
+    if (catalogSyncing) return;
+    setCatalogSyncing(true);
+    setCatalogError('');
+    setStatus({ tone: 'idle', text: 'Menyinkronkan seed product ke Odoo product.product...' });
+    try {
+      const response = await fetch('/api/catalog/products', { method: 'POST' });
+      const payload = await response.json().catch(() => null) as CatalogPayload | null;
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || 'Produk katalog belum berhasil dibuat di Odoo.');
+      }
+      setCatalogProducts(payload.products || []);
+      setStatus({
+        tone: 'success',
+        text: `Katalog Odoo tersinkron. ${payload.created || 0} product.product baru dibuat.`,
+      });
+    } catch (event) {
+      const message = event instanceof Error ? event.message : 'Produk katalog belum berhasil dibuat di Odoo.';
+      setCatalogError(message);
+      setStatus({ tone: 'error', text: message });
+    } finally {
+      setCatalogSyncing(false);
+      setCatalogLoading(false);
+    }
+  }
+
   async function activateTemplate(templateCode: NamlahProjectTemplateCode) {
     if (submitting || !activeAssignment) return;
     setSubmitting(true);
@@ -138,6 +206,10 @@ export function StorePanel({ account, role }: StorePanelProps) {
 
   const cashierReady = deliveryCustomerName.trim() && Number(amount) > 0;
 
+  useEffect(() => {
+    void loadCatalogProducts();
+  }, []);
+
   return (
     <section className="screen-panel">
       <header className="screen-header">
@@ -148,6 +220,49 @@ export function StorePanel({ account, role }: StorePanelProps) {
         <span className="role-badge"><ShoppingBag size={17} /> {koloniScope.label}</span>
       </header>
       <div className="screen-scroll">
+        <section className="catalog-hero" aria-label="Katalog koloni">
+          <div className="catalog-search">
+            <Search size={15} />
+            <span>Cari produk, sarang, atau koloni...</span>
+            <ShoppingCart size={15} />
+          </div>
+          <div className="catalog-pills" aria-label="Kategori katalog">
+            {['Semua', 'Pangan', 'Minuman', 'Kerajinan', 'Lainnya'].map((item, index) => (
+              <button className={index === 0 ? 'active' : ''} type="button" key={item}>{item}</button>
+            ))}
+          </div>
+          <div className="catalog-section-head">
+            <strong>product.product Odoo</strong>
+            <button type="button" onClick={syncCatalogProducts} disabled={catalogSyncing}>
+              {catalogSyncing ? <Loader2 size={14} className="spin-icon" /> : <Database size={14} />}
+              Sinkron
+            </button>
+          </div>
+          <div className="product-grid">
+            {catalogLoading ? (
+              <div className="catalog-empty-state"><Loader2 size={18} className="spin-icon" /> Membaca produk Odoo...</div>
+            ) : catalogProducts.length ? (
+              catalogProducts.map((product) => (
+                <article className="product-card" key={product.id}>
+                  <div className="product-image odoo-product-badge">
+                    <span>{product.name.slice(0, 2).toUpperCase()}</span>
+                    <small>#{product.odooId}</small>
+                  </div>
+                  <strong>{product.name}</strong>
+                  <span>{product.category} / {product.code}</span>
+                  <p><b>{product.formattedPrice}</b> / {product.uom}</p>
+                </article>
+              ))
+            ) : (
+              <div className="catalog-empty-state">
+                <ShoppingCart size={18} />
+                {catalogError || 'Belum ada product.product Odoo untuk katalog.'}
+              </div>
+            )}
+          </div>
+          {catalogError ? <p className="catalog-error">{catalogError}</p> : null}
+        </section>
+
         <div className="role-menu-row panel-row">
           {role.menuItems.slice(0, 3).map((item) => (
             <button type="button" className="role-menu-card" key={item.label}>

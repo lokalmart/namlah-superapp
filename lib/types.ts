@@ -1,6 +1,6 @@
 export type RoleId = 'member' | 'surveyor' | 'kurir' | 'kasir' | 'umkm' | 'admin' | 'koperasi';
 
-export type AppTab = 'map' | 'store' | 'ratu' | 'scan' | 'account';
+export type AppTab = 'map' | 'store' | 'forum' | 'ratu' | 'scan' | 'account';
 
 export type ExperienceTheme = 'modern' | 'game';
 

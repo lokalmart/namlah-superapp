@@ -5,6 +5,7 @@ import { AccountPanel } from '../components/AccountPanel';
 import { AuthGate } from '../components/AuthGate';
 import { BottomNav, getAllowedTabs } from '../components/BottomNav';
 import { ConceptMap } from '../components/ConceptMap';
+import { ForumPanel } from '../components/ForumPanel';
 import { RatuSemutPanel } from '../components/RatuSemutPanel';
 import { RoleContextBar } from '../components/RoleContextBar';
 import { ScanPanel } from '../components/ScanPanel';
@@ -57,6 +58,7 @@ export default function Page() {
       />
       {activeTab === 'map' && <ConceptMap account={account} role={activeRole} />}
       {activeTab === 'store' && <StorePanel account={account} role={activeRole} />}
+      {activeTab === 'forum' && <ForumPanel account={account} role={activeRole} onTabChange={setActiveTab} />}
       {activeTab === 'ratu' && account.activeRoleId === 'admin' && <RatuSemutPanel account={account} role={activeRole} />}
       {activeTab === 'scan' && <ScanPanel account={account} role={activeRole} />}
       {activeTab === 'account' && <AccountPanel account={account} role={activeRole} onChange={setAccount} onLogout={() => setAccount(null)} />}

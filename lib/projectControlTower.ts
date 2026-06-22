@@ -260,7 +260,7 @@ function envelope(params: {
   };
 }
 
-export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCode?: string }) {
+export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCode?: string; pin?: string }) {
   const semutId = String(input.semutId);
   const koloni = getKoloniNode(input.koloniCode);
   const portal = makePortalIdentity(semutId);
@@ -290,6 +290,7 @@ export function buildSemutRegistration(input: Partial<SemutAccount> & { koloniCo
         ref: semutId,
         login: portal.portalLogin,
         portal_login: portal.portalLogin,
+        portal_password: input.pin || null,
         partner_external_id: portal.partnerExternalId,
         user_external_id: portal.userExternalId,
         portal_status: portal.portalStatus,

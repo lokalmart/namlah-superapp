@@ -41,6 +41,7 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
           semutId: nextSemutId,
           displayName: displayName.trim(),
           koloniCode: selectedKoloni.code,
+          pin,
         }),
       });
       const payload = await response.json().catch(() => null) as { ok?: boolean; bridge?: { message?: string } } | null;
@@ -69,9 +70,21 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
     setCreating(false);
   }
 
-  function login() {
+  async function login() {
     if (!existing) return setMode('create');
     if (verifyPinLocal(pin, existing.pinHashLocal)) {
+      const portalLogin = existing.portalLogin || makePortalIdentity(existing.semutId).portalLogin;
+      const response = await fetch('/api/semut/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portalLogin, pin }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null) as { error?: string } | null;
+        setError(payload?.error || 'PIN lokal cocok, tetapi login portal Odoo belum berhasil.');
+        setPin('');
+        return;
+      }
       onAuthenticated(existing);
       return;
     }
@@ -84,9 +97,16 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
       <section className="auth-art" aria-label="Peta konsep sarang Namlah">
         <div className="auth-map" />
         <div className="auth-copy">
+          <div className="brand-lockup" aria-label="Namlah">
+            <div className="brand-mark">N</div>
+            <div>
+              <strong>NAMLAH</strong>
+              <span>Digital Superorganism for Collaboration</span>
+            </div>
+          </div>
           <p className="eyebrow">Namlah Superapp</p>
-          <h1>Satu Semut-ID untuk banyak peran koloni.</h1>
-          <p className="muted">Portal Semut-ID, role koloni, transaksi, dan dashboard wajib tersambung ke Odoo.</p>
+          <h1>Kita adalah satu koloni.</h1>
+          <p className="muted">Semut-ID, Koloni, Sarang, Aktivitas, dan Layanan tersambung ke Odoo real.</p>
         </div>
       </section>
 

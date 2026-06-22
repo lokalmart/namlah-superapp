@@ -1,4 +1,4 @@
-import { Crown, Gamepad2, LogOut, Mail, Phone, Plus, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
+import { Crown, Gamepad2, Loader2, LocateFixed, LogOut, Mail, MapPin, Phone, Plus, ShieldCheck, Sparkles, UserRoundCog } from 'lucide-react';
 import { useState } from 'react';
 import { PinPad } from './PinPad';
 import { defaultKoloniCode, describeKoloniPolicy, getJoinableKoloniNodes, getKoloniNode, getKoloniScope } from '../lib/koloni';
@@ -12,6 +12,16 @@ type AccountPanelProps = {
   role: RoleConfig;
   onChange: (account: SemutAccount) => void;
   onLogout: () => void;
+};
+
+type LocationPayload = {
+  ok?: boolean;
+  partner?: {
+    odooId: number;
+    updatedAt: string;
+  };
+  createdFields?: number;
+  error?: string;
 };
 
 export function AccountPanel({ account, role, onChange, onLogout }: AccountPanelProps) {
@@ -30,6 +40,12 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
   const [roleKoloniCode, setRoleKoloniCode] = useState(activeAssignment?.koloniCode || defaultKoloniCode);
   const [roleMessage, setRoleMessage] = useState('');
   const [roleSubmitting, setRoleSubmitting] = useState(false);
+  const [locationLat, setLocationLat] = useState('');
+  const [locationLng, setLocationLng] = useState('');
+  const [locationPin, setLocationPin] = useState('');
+  const [locationLabel, setLocationLabel] = useState('');
+  const [locationSubmitting, setLocationSubmitting] = useState(false);
+  const [locationMessage, setLocationMessage] = useState('');
 
   function selectRole(roleId: RoleId) {
     if (account.activeRoleId === roleId) return;
@@ -99,6 +115,62 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
     onLogout();
   }
 
+  function useCurrentLocation() {
+    setLocationMessage('');
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationMessage('Browser belum mengizinkan GPS perangkat.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationLat(position.coords.latitude.toFixed(7));
+        setLocationLng(position.coords.longitude.toFixed(7));
+        setLocationMessage('GPS perangkat terbaca. Kirim untuk update partner Odoo.');
+      },
+      (error) => setLocationMessage(error.message || 'GPS perangkat belum bisa dibaca.'),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
+  }
+
+  async function submitPartnerLocation() {
+    if (locationSubmitting) return;
+    const latitude = Number(locationLat);
+    const longitude = Number(locationLng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || locationPin.length < 4) {
+      setLocationMessage('Latitude, longitude, dan PIN portal wajib valid.');
+      return;
+    }
+    setLocationSubmitting(true);
+    setLocationMessage('Mengupdate lokasi GPS ke res.partner Odoo...');
+    try {
+      const response = await fetch('/api/partners/locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          semutId: account.semutId,
+          portalLogin: actor.portalLogin,
+          pin: locationPin,
+          latitude,
+          longitude,
+          roleCode: account.activeRoleId,
+          koloniCode: activeAssignment?.koloniCode || activeKoloni.code,
+          label: locationLabel,
+          source: account.activeRoleId === 'kurir' ? 'namlah-superapp-kurir' : 'namlah-superapp-account',
+        }),
+      });
+      const payload = await response.json().catch(() => null) as LocationPayload | null;
+      if (!response.ok || payload?.ok === false) {
+        throw new Error(payload?.error || 'Lokasi GPS belum tersimpan di Odoo.');
+      }
+      setLocationPin('');
+      setLocationMessage(`Lokasi tersimpan ke res.partner #${payload?.partner?.odooId || '-'} di Odoo.`);
+    } catch (event) {
+      setLocationMessage(event instanceof Error ? event.message : 'Lokasi GPS belum tersimpan di Odoo.');
+    } finally {
+      setLocationSubmitting(false);
+    }
+  }
+
   return (
     <section className="screen-panel">
       <header className="screen-header">
@@ -111,10 +183,24 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
 
       <div className="screen-scroll">
         <div className="account-layout">
-          <aside className="account-card">
-            <p className="small-label">Semut-ID</p>
-            <h3>{account.displayName}</h3>
-            <p className="muted">{account.semutId}</p>
+          <aside className="account-card profile-hero-card">
+            <div className="profile-canopy">
+              <div className="profile-avatar" aria-hidden="true">
+                {account.displayName.slice(0, 1).toUpperCase() || 'N'}
+              </div>
+            </div>
+            <div className="profile-identity">
+              <p className="small-label">Semut-ID</p>
+              <h3>{account.displayName}</h3>
+              <p className="muted">@{actor.portalLogin}</p>
+              <span>{account.semutId}</span>
+            </div>
+            <div className="profile-stat-row" aria-label="Ringkasan profil">
+              <span><strong>{roleIds.length}</strong>Role</span>
+              <span><strong>{activeKoloniScope.childCount}</strong>Sarang</span>
+              <span><strong>{role.quickStats.length}</strong>Proyek</span>
+              <span><strong>4.9</strong>Rating</span>
+            </div>
             <div className="portal-map">
               <span>res.partner</span>
               <strong>{actor.partnerExternalId}</strong>
@@ -187,6 +273,43 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
               <span>sumber kontak</span>
               <strong>Odoo / konfigurasi koloni</strong>
             </div>
+          </div>
+
+          <div className="account-card location-card">
+            <p className="small-label">Lokasi GPS Partner</p>
+            <h3>Pin peta dari res.partner.</h3>
+            <p className="muted">
+              Semut-ID dan Kurir mengupdate lokasi ke partner portal Odoo. Partner company otomatis tampil sebagai Koloni.
+            </p>
+            <div className="field-grid location-grid">
+              <label>
+                Latitude
+                <input inputMode="decimal" value={locationLat} onChange={(event) => setLocationLat(event.target.value)} placeholder="-6.7320000" />
+              </label>
+              <label>
+                Longitude
+                <input inputMode="decimal" value={locationLng} onChange={(event) => setLocationLng(event.target.value)} placeholder="108.5523000" />
+              </label>
+              <label>
+                PIN portal Odoo
+                <input type="password" inputMode="numeric" value={locationPin} onChange={(event) => setLocationPin(event.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="PIN portal" />
+              </label>
+              <label>
+                Catatan lokasi
+                <input value={locationLabel} onChange={(event) => setLocationLabel(event.target.value)} placeholder={account.activeRoleId === 'kurir' ? 'Posisi kurir saat ini' : 'Lokasi sarang/aktivitas'} />
+              </label>
+            </div>
+            <div className="location-action-row">
+              <button className="icon-action" type="button" onClick={useCurrentLocation}>
+                <LocateFixed size={17} />
+                Ambil GPS
+              </button>
+              <button className="primary-action" type="button" onClick={submitPartnerLocation} disabled={locationSubmitting}>
+                {locationSubmitting ? <Loader2 size={17} className="spin-icon" /> : <MapPin size={17} />}
+                Update Odoo
+              </button>
+            </div>
+            {locationMessage ? <p className="muted location-message">{locationMessage}</p> : null}
           </div>
 
           {account.activeRoleId === 'admin' && (

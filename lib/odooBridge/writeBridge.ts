@@ -106,6 +106,11 @@ async function upsertPartner(client: OdooBridgeClient, envelope: NamlahOdooEnvel
   const values = await filterWritableValues(client, 'res.partner', {
     name: envelope.fields.name || semutId,
     ref: semutId,
+    x_namlah_semut_id: semutId,
+    x_namlah_role_code: envelope.roleCode,
+    x_namlah_koloni_code: envelope.koloniCode,
+    x_namlah_wilayah_code: envelope.wilayahCode,
+    x_namlah_partner_kind: envelope.roleCode,
   });
 
   if (existingId) {
@@ -130,17 +135,21 @@ async function getPortalGroupId(client: OdooBridgeClient) {
 async function upsertPortalUser(client: OdooBridgeClient, envelope: NamlahOdooEnvelope, partnerId: number) {
   const portal = makePortalIdentity(envelope.actorSemutId);
   const login = String(envelope.fields.portal_login || envelope.fields.login || portal.portalLogin);
+  const portalPassword = typeof envelope.fields.portal_password === 'string' ? envelope.fields.portal_password.trim() : '';
   const externalId = portal.userExternalId;
   const portalGroupId = await getPortalGroupId(client);
   const existingExternal = await findByExternalId(client, externalId);
   const existingId = existingExternal?.res_id || await findFirst(client, 'res.users', [['login', '=', login]]);
 
   if (existingId) {
-    await client.executeKw('res.users', 'write', [[existingId], {
+    const values: Record<string, unknown> = {
       name: envelope.fields.name || envelope.actorSemutId,
       active: true,
       groups_id: [[4, portalGroupId]],
-    }], {
+    };
+    if (portalPassword) values.password = portalPassword;
+
+    await client.executeKw('res.users', 'write', [[existingId], values], {
       context: {
         no_reset_password: true,
         mail_create_nosubscribe: true,
@@ -156,6 +165,7 @@ async function upsertPortalUser(client: OdooBridgeClient, envelope: NamlahOdooEn
     login,
     partner_id: partnerId,
     active: true,
+    password: portalPassword || undefined,
     groups_id: [[6, 0, [portalGroupId]]],
   }], {
     context: {
@@ -234,6 +244,11 @@ async function upsertKoloniPartner(client: OdooBridgeClient, envelope: NamlahOdo
     name: `Koloni ${envelope.koloniCode}`,
     ref: envelope.koloniCode,
     company_type: 'company',
+    is_company: true,
+    x_namlah_koloni_code: envelope.koloniCode,
+    x_namlah_wilayah_code: envelope.wilayahCode,
+    x_namlah_partner_kind: 'koloni',
+    x_namlah_is_koloni: true,
   };
 
   if (existingId) {
