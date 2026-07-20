@@ -1,4 +1,7 @@
 import { BadgeCheck, Camera, MapPin, NotebookPen, ScanBarcode, Shield, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from './ui/Button';
+import { Card } from './ui/Card';
 import { getSourceOfTruth, makePortalActor } from '../lib/odooArchitecture';
 import type { RoleConfig, SemutAccount } from '../lib/types';
 
@@ -10,6 +13,12 @@ type ScanPanelProps = {
 export function ScanPanel({ account, role }: ScanPanelProps) {
   const actor = makePortalActor(account);
   const source = getSourceOfTruth(role.id);
+  const [flash, setFlash] = useState(false);
+
+  function simulateScan() {
+    setFlash(true);
+    setTimeout(() => setFlash(false), 420);
+  }
 
   return (
     <section className="screen-panel">
@@ -23,14 +32,14 @@ export function ScanPanel({ account, role }: ScanPanelProps) {
       <div className="scan-layout">
         <div className={account.experienceTheme === 'game' ? 'scan-window game-scan' : 'scan-window'} aria-label="Dummy scan frame">
           {account.experienceTheme === 'game' && <div className="portal-ring" />}
-          <div className="scan-frame" />
+          <div className={`scan-frame ${flash ? 'pin-flash' : ''}`} />
         </div>
         <aside className="scan-panel">
-          <div className="account-card">
+          <Card>
             <h3><BadgeCheck size={18} /> {role.primaryModule}</h3>
             <p className="muted">{source.model} / {source.saleOrder || source.task}</p>
-          </div>
-          <div className="account-card proof-card">
+          </Card>
+          <Card variant="filled">
             <h3><Shield size={18} /> Bukti ke Odoo</h3>
             <p className="muted">Actor {actor.semutId} menulis {source.sop.requiredProof} ke {source.model}.</p>
             <div className="proof-chip-row">
@@ -38,11 +47,11 @@ export function ScanPanel({ account, role }: ScanPanelProps) {
               <span><MapPin size={13} /> Lokasi</span>
               <span><NotebookPen size={13} /> Catatan</span>
             </div>
-          </div>
-          <div className="account-card">
+          </Card>
+          <Card variant="filled">
             <h3><Shield size={18} /> SOP stage: {source.stage}</h3>
             <p className="muted">{source.sop.mobileHint}</p>
-          </div>
+          </Card>
           <div className="role-menu-row scan-actions">
             {role.featuredActions.map((action) => (
               <button type="button" className="role-menu-card" key={action}>
@@ -51,10 +60,13 @@ export function ScanPanel({ account, role }: ScanPanelProps) {
               </button>
             ))}
           </div>
-          <button className="primary-action" type="button">
-            <Sparkles size={18} />
+          <Button
+            fullWidth
+            leading={<Sparkles size={18} />}
+            onClick={simulateScan}
+          >
             {account.experienceTheme === 'game' ? 'Aktifkan Portal Scan' : 'Simulasikan Scan'}
-          </button>
+          </Button>
         </aside>
       </div>
     </section>
