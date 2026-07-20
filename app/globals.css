@@ -142,8 +142,9 @@ button {
   display: grid;
   grid-template-columns: 1fr;
   background:
-    radial-gradient(circle at 20% 20%, rgba(31, 122, 77, 0.22), transparent 30%),
-    linear-gradient(135deg, #f4efe2 0%, #eef4ee 58%, #dbe6e2 100%);
+    radial-gradient(circle at 20% 20%, rgba(31, 122, 77, 0.15), transparent 30%),
+    linear-gradient(135deg, var(--white) 0%, #f9f7f3 58%, #f3f0ec 100%);
+  color: var(--ink);
 }
 
 .auth-art {
@@ -240,21 +241,32 @@ h3 {
 
 .pin-panel {
   width: min(420px, 100%);
-  padding: 22px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pin-panel h2 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 20px;
 }
 
 .field-grid {
   display: grid;
-  gap: 12px;
-  margin: 16px 0;
+  gap: 14px;
+  margin: 12px 0 0;
 }
 
 label {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   color: var(--muted);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 input,
@@ -262,11 +274,13 @@ select {
   width: 100%;
   height: 46px;
   padding: 0 12px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--white);
   color: var(--ink);
   outline: none;
+  font-size: 15px;
+  transition: var(--transition-base);
 }
 
 input:focus,
@@ -1014,13 +1028,14 @@ body {
 
 .auth-screen {
   background:
-    radial-gradient(circle at 16% 18%, rgba(244, 189, 66, 0.28), transparent 28%),
-    radial-gradient(circle at 82% 80%, rgba(31, 122, 77, 0.22), transparent 36%),
-    linear-gradient(135deg, #231b17 0%, #384626 46%, #17241d 100%);
+    radial-gradient(circle at 16% 18%, rgba(244, 189, 66, 0.12), transparent 28%),
+    radial-gradient(circle at 82% 80%, rgba(31, 122, 77, 0.08), transparent 36%),
+    linear-gradient(135deg, #f8f6f2 0%, #f4f1ed 46%, #f0ede9 100%);
+  color: var(--ink);
 }
 
 .auth-art {
-  color: var(--game-cream);
+  color: var(--ink);
 }
 
 .auth-map {
@@ -1063,12 +1078,13 @@ body {
 
 .auth-copy h1,
 .auth-copy .muted {
-  color: var(--game-cream);
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  color: var(--ink);
+  text-shadow: none;
 }
 
 .auth-panel {
-  background: rgba(255, 243, 201, 0.88);
+  background: rgba(255, 253, 247, 0.95);
+  color: var(--ink);
 }
 
 .panel,
@@ -2676,19 +2692,26 @@ body {
 
 .real-map-pin {
   position: absolute;
-  max-width: min(210px, 42%);
+  max-width: min(220px, 45%);
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
   color: var(--ink);
-  background: rgba(255, 253, 247, 0.95);
-  border: 1px solid color-mix(in srgb, var(--role) 30%, white);
+  background: rgba(255, 253, 247, 0.96);
+  border: 2px solid color-mix(in srgb, var(--role) 35%, white);
   border-radius: 8px;
-  box-shadow: 0 10px 24px rgba(20, 32, 24, 0.18);
+  box-shadow: 0 8px 20px rgba(20, 32, 24, 0.15), 0 0 0 1px rgba(20, 32, 24, 0.08);
   cursor: pointer;
   pointer-events: auto;
   transform: translate(-50%, -50%);
+  transition: var(--transition-base);
+}
+
+.real-map-pin:hover {
+  border-color: var(--role);
+  box-shadow: 0 12px 28px rgba(20, 32, 24, 0.22), 0 0 0 2px rgba(20, 32, 24, 0.12);
 }
 
 .real-map-pin svg {
@@ -2718,7 +2741,10 @@ body {
 }
 
 .real-map-pin.hot {
-  border-color: var(--role);
+  border: 2px solid var(--role);
+  background: color-mix(in srgb, var(--role) 8%, white);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--role) 35%, transparent), 0 0 0 3px rgba(255, 253, 247, 0.8);
+  font-weight: 600;
 }
 
 .map-pin-layer-empty {

@@ -111,10 +111,54 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
       </section>
 
       <section className="auth-panel">
+        {/* Mode Toggle - only show if existing account */}
+        {existing && (
+          <div className="auth-mode-toggle" style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+            <button
+              type="button"
+              className="auth-mode-btn"
+              data-active={mode === 'login'}
+              onClick={() => { setMode('login'); setPin(''); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                background: mode === 'login' ? 'var(--role)' : 'transparent',
+                color: mode === 'login' ? 'white' : 'var(--muted)',
+                border: mode === 'login' ? 'none' : '1px solid var(--line)',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <KeyRound size={14} style={{ marginRight: '4px' }} /> Masuk
+            </button>
+            <button
+              type="button"
+              className="auth-mode-btn"
+              data-active={mode === 'create'}
+              onClick={() => { setMode('create'); setPin(''); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                background: mode === 'create' ? 'var(--role)' : 'transparent',
+                color: mode === 'create' ? 'white' : 'var(--muted)',
+                border: mode === 'create' ? 'none' : '1px solid var(--line)',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <UserRoundPlus size={14} style={{ marginRight: '4px' }} /> Buat
+            </button>
+          </div>
+        )}
+
         <div className="pin-panel">
           <div className="role-badge">
             {mode === 'create' ? <UserRoundPlus size={17} /> : <KeyRound size={17} />}
-            {mode === 'create' ? 'Create Semut-ID' : existing?.semutId || 'Semut-ID'}
+            {mode === 'create' ? 'Buat Semut-ID Baru' : existing?.semutId || 'Masuk'}
           </div>
 
           {mode === 'create' ? (
