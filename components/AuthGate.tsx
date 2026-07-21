@@ -161,6 +161,7 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
       </section>
 
       <section className="auth-panel">
+<<<<<<< HEAD
         <div className="auth-mode-toggle" style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
           <button
             type="button"
@@ -220,11 +221,60 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
             <KeyRound size={14} style={{ marginRight: '4px' }} /> Portal Odoo
           </button>
         </div>
+=======
+        {/* Mode Toggle - only show if existing account */}
+        {existing && (
+          <div className="auth-mode-toggle" style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+            <button
+              type="button"
+              className="auth-mode-btn"
+              data-active={mode === 'login'}
+              onClick={() => { setMode('login'); setPin(''); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                background: mode === 'login' ? 'var(--role)' : 'transparent',
+                color: mode === 'login' ? 'white' : 'var(--muted)',
+                border: mode === 'login' ? 'none' : '1px solid var(--line)',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <KeyRound size={14} style={{ marginRight: '4px' }} /> Masuk
+            </button>
+            <button
+              type="button"
+              className="auth-mode-btn"
+              data-active={mode === 'create'}
+              onClick={() => { setMode('create'); setPin(''); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                background: mode === 'create' ? 'var(--role)' : 'transparent',
+                color: mode === 'create' ? 'white' : 'var(--muted)',
+                border: mode === 'create' ? 'none' : '1px solid var(--line)',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <UserRoundPlus size={14} style={{ marginRight: '4px' }} /> Buat
+            </button>
+          </div>
+        )}
+>>>>>>> 46e30b4aa98a06e56afe62ad05d46a45aa912e5e
 
         <div className="pin-panel">
           <div className="role-badge">
             {mode === 'create' ? <UserRoundPlus size={17} /> : <KeyRound size={17} />}
+<<<<<<< HEAD
             {mode === 'create' ? 'Buat Semut-ID Baru' : mode === 'odoo' ? 'Login Portal Odoo' : existing?.semutId || 'Masuk'}
+=======
+            {mode === 'create' ? 'Buat Semut-ID Baru' : existing?.semutId || 'Masuk'}
+>>>>>>> 46e30b4aa98a06e56afe62ad05d46a45aa912e5e
           </div>
 
           {mode === 'create' ? (
