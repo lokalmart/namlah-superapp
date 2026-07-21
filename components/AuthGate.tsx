@@ -13,15 +13,21 @@ type AuthGateProps = {
   onAuthenticated: (account: SemutAccount) => void;
 };
 
+type AuthMode = 'login' | 'create' | 'odoo';
+
 export function AuthGate({ onAuthenticated }: AuthGateProps) {
   const existing = useMemo(() => loadAccount(), []);
-  const [mode, setMode] = useState<'login' | 'create'>(existing ? 'login' : 'create');
+  const [mode, setMode] = useState<AuthMode>(existing ? 'login' : 'create');
   const [displayName, setDisplayName] = useState('');
   const [semutId, setSemutId] = useState('');
   const [koloniCode, setKoloniCode] = useState(defaultKoloniCode);
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
+  const [odooUrl, setOdooUrl] = useState('');
+  const [odooLogin, setOdooLogin] = useState('');
+  const [odooPassword, setOdooPassword] = useState('');
+  const [odooLoggingIn, setOdooLoggingIn] = useState(false);
   const joinableKoloni = getJoinableKoloniNodes();
   const selectedKoloni = getKoloniNode(koloniCode);
 
@@ -92,6 +98,50 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
     setPin('');
   }
 
+  async function odooPortalLogin() {
+    if (!odooLogin.trim() || !odooPassword.trim() || odooLoggingIn) return;
+    setOdooLoggingIn(true);
+    setError('');
+    try {
+      const response = await fetch('/api/odoo/portal-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          login: odooLogin.trim(),
+          password: odooPassword.trim(),
+          url: odooUrl.trim() || undefined,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as { ok?: boolean; sessionToken?: string; user?: { id: number; name?: string; login?: string }; error?: string } | null;
+      if (!response.ok || payload?.ok === false) {
+        throw new Error(payload?.error || 'Login portal Odoo gagal. Periksa kembali kredensial Anda.');
+      }
+      const sessionToken = payload?.sessionToken || '';
+      const portalLogin = payload?.user?.login || odooLogin.trim();
+      const display = payload?.user?.name || odooLogin.trim();
+      const pinHashLocal = createPinHashLocal(odooPassword.trim().slice(0, 4).padEnd(4, '0'));
+      const account: SemutAccount = {
+        semutId: makeSemutId(display),
+        displayName: display,
+        pinHashLocal,
+        portalLogin,
+        portalStatus: 'portal_ready',
+        emailVerificationStatus: 'not_required',
+        roleAssignments: [makeRoleAssignment('member', pinHashLocal, defaultKoloniCode)],
+        activeRoleId: 'member',
+        experienceTheme: 'game',
+        odooPortalMode: true,
+        odooPortalSessionToken: sessionToken,
+      };
+      saveAccount(account);
+      onAuthenticated(account);
+    } catch (event) {
+      setError(event instanceof Error ? event.message : 'Login portal Odoo gagal.');
+    } finally {
+      setOdooLoggingIn(false);
+    }
+  }
+
   return (
     <main className="auth-screen">
       <section className="auth-art" aria-label="Peta konsep sarang Namlah">
@@ -111,10 +161,120 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
       </section>
 
       <section className="auth-panel">
+<<<<<<< HEAD
+        <div className="auth-mode-toggle" style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+          <button
+            type="button"
+            className="auth-mode-btn"
+            data-active={mode === 'login'}
+            onClick={() => { setMode('login'); setPin(''); setError(''); }}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              background: mode === 'login' ? 'var(--role)' : 'transparent',
+              color: mode === 'login' ? 'white' : 'var(--muted)',
+              border: mode === 'login' ? 'none' : '1px solid var(--line)',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <KeyRound size={14} style={{ marginRight: '4px' }} /> Masuk
+          </button>
+          <button
+            type="button"
+            className="auth-mode-btn"
+            data-active={mode === 'create'}
+            onClick={() => { setMode('create'); setPin(''); setError(''); }}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              background: mode === 'create' ? 'var(--role)' : 'transparent',
+              color: mode === 'create' ? 'white' : 'var(--muted)',
+              border: mode === 'create' ? 'none' : '1px solid var(--line)',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <UserRoundPlus size={14} style={{ marginRight: '4px' }} /> Buat
+          </button>
+          <button
+            type="button"
+            className="auth-mode-btn"
+            data-active={mode === 'odoo'}
+            onClick={() => { setMode('odoo'); setPin(''); setError(''); }}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              background: mode === 'odoo' ? 'var(--role)' : 'transparent',
+              color: mode === 'odoo' ? 'white' : 'var(--muted)',
+              border: mode === 'odoo' ? 'none' : '1px solid var(--line)',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <KeyRound size={14} style={{ marginRight: '4px' }} /> Portal Odoo
+          </button>
+        </div>
+=======
+        {/* Mode Toggle - only show if existing account */}
+        {existing && (
+          <div className="auth-mode-toggle" style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+            <button
+              type="button"
+              className="auth-mode-btn"
+              data-active={mode === 'login'}
+              onClick={() => { setMode('login'); setPin(''); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                background: mode === 'login' ? 'var(--role)' : 'transparent',
+                color: mode === 'login' ? 'white' : 'var(--muted)',
+                border: mode === 'login' ? 'none' : '1px solid var(--line)',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <KeyRound size={14} style={{ marginRight: '4px' }} /> Masuk
+            </button>
+            <button
+              type="button"
+              className="auth-mode-btn"
+              data-active={mode === 'create'}
+              onClick={() => { setMode('create'); setPin(''); setError(''); }}
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                background: mode === 'create' ? 'var(--role)' : 'transparent',
+                color: mode === 'create' ? 'white' : 'var(--muted)',
+                border: mode === 'create' ? 'none' : '1px solid var(--line)',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <UserRoundPlus size={14} style={{ marginRight: '4px' }} /> Buat
+            </button>
+          </div>
+        )}
+>>>>>>> 46e30b4aa98a06e56afe62ad05d46a45aa912e5e
+
         <div className="pin-panel">
           <div className="role-badge">
             {mode === 'create' ? <UserRoundPlus size={17} /> : <KeyRound size={17} />}
-            {mode === 'create' ? 'Create Semut-ID' : existing?.semutId || 'Semut-ID'}
+<<<<<<< HEAD
+            {mode === 'create' ? 'Buat Semut-ID Baru' : mode === 'odoo' ? 'Login Portal Odoo' : existing?.semutId || 'Masuk'}
+=======
+            {mode === 'create' ? 'Buat Semut-ID Baru' : existing?.semutId || 'Masuk'}
+>>>>>>> 46e30b4aa98a06e56afe62ad05d46a45aa912e5e
           </div>
 
           {mode === 'create' ? (
@@ -153,6 +313,29 @@ export function AuthGate({ onAuthenticated }: AuthGateProps) {
                   Masuk akun tersimpan
                 </button>
               )}
+            </>
+          ) : mode === 'odoo' ? (
+            <>
+              <h2 style={{ marginTop: 16 }}>Masuk dengan akun portal Odoo asli.</h2>
+              <p className="muted">Gunakan username dan password portal user yang terdaftar di edu-lokalmart.odoo.com.</p>
+              <div className="field-grid">
+                <label>
+                  URL Odoo
+                  <input value={odooUrl} onChange={(event) => setOdooUrl(event.target.value)} placeholder="https://edu-lokalmart.odoo.com" />
+                </label>
+                <label>
+                  Username portal Odoo
+                  <input value={odooLogin} onChange={(event) => setOdooLogin(event.target.value)} placeholder="Contoh: john@example.com" />
+                </label>
+                <label>
+                  Password portal Odoo
+                  <input value={odooPassword} onChange={(event) => setOdooPassword(event.target.value)} type="password" placeholder="Password portal Odoo" />
+                </label>
+              </div>
+              <button className="primary-action" type="button" onClick={odooPortalLogin} disabled={!odooLogin.trim() || !odooPassword.trim() || odooLoggingIn} style={{ marginTop: 12 }}>
+                {odooLoggingIn ? 'Memverifikasi...' : 'Login ke Portal Odoo'}
+              </button>
+              {error && <p style={{ color: 'var(--danger)', margin: '10px 0 0' }}>{error}</p>}
             </>
           ) : (
             <>

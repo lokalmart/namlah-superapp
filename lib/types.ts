@@ -27,6 +27,8 @@ export type SemutAccount = {
   roleAssignments: RoleAssignment[];
   activeRoleId: RoleId;
   experienceTheme: ExperienceTheme;
+  odooPortalMode?: boolean;
+  odooPortalSessionToken?: string;
 };
 
 export type RoleConfig = {
