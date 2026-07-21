@@ -1,5 +1,6 @@
 import { makePortalIdentity } from '../portalIdentity';
 import { createOdooBridgeClient, createOdooBridgeClientWithCredentials, type OdooBridgeClient, type OdooFieldMap } from './client';
+import { createPortalClientFromSession } from './session';
 
 export type NamlahForumPost = {
   id: string;
@@ -108,7 +109,8 @@ export async function listForumPosts(koloniCode?: string): Promise<{ ok: true; p
 export async function createForumPost(input: {
   semutId: string;
   portalLogin?: string;
-  pin: string;
+  pin?: string;
+  sessionToken?: string;
   koloniCode: string;
   title: string;
   body: string;
@@ -117,7 +119,20 @@ export async function createForumPost(input: {
   const portalLogin = (input.portalLogin || portal.portalLogin).trim();
   const integrationClient = await createOdooBridgeClient();
   const forum = await findOrCreateNamlahForum(integrationClient, input.koloniCode);
-  const portalClient = await createOdooBridgeClientWithCredentials(portalLogin, input.pin.trim());
+  
+  let portalClient: OdooBridgeClient;
+  if (input.sessionToken) {
+    const sessionClient = await createPortalClientFromSession(input.sessionToken);
+    if (!sessionClient) {
+      throw new Error('Sesi portal Odoo tidak valid atau sudah kedaluwarsa. Silakan login kembali.');
+    }
+    portalClient = sessionClient;
+  } else {
+    const pin = input.pin?.trim() || '';
+    if (!pin) throw new Error('PIN portal wajib diisi.');
+    portalClient = await createOdooBridgeClientWithCredentials(portalLogin, pin);
+  }
+  
   const postFields = await getFields(portalClient, 'forum.post');
 
   const title = `[${input.koloniCode}] ${input.title.trim()}`;

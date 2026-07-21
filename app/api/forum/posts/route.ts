@@ -31,19 +31,20 @@ export async function POST(request: Request) {
   const semutId = text(body.semutId);
   const portalLogin = text(body.portalLogin);
   const pin = text(body.pin);
+  const sessionToken = text(body.sessionToken);
   const koloniCode = text(body.koloniCode);
   const title = text(body.title);
   const postBody = text(body.body);
 
-  if (!semutId || pin.length < 4 || !koloniCode || !title || !postBody) {
+  if (!semutId || !sessionToken && pin.length < 4 || !koloniCode || !title || !postBody) {
     return NextResponse.json({
       ok: false,
-      error: 'semutId, PIN portal, koloniCode, title, dan body wajib diisi untuk membuat forum.post real.',
+      error: 'semutId, sesi portal Odoo (atau PIN), koloniCode, title, dan body wajib diisi untuk membuat forum.post real.',
     }, { status: 400 });
   }
 
   try {
-    const payload = await createForumPost({ semutId, portalLogin, pin, koloniCode, title, body: postBody });
+    const payload = await createForumPost({ semutId, portalLogin, pin, sessionToken: sessionToken || undefined, koloniCode, title, body: postBody });
     return NextResponse.json(payload, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     return NextResponse.json({

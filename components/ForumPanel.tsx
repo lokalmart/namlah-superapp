@@ -58,7 +58,7 @@ export function ForumPanel({ account, role, onTabChange }: ForumPanelProps) {
     text: 'Forum membaca dan menulis record Odoo website_forum.',
   });
 
-  const canSubmit = useMemo(() => title.trim().length > 2 && body.trim().length > 4 && pin.trim().length >= 4, [body, pin, title]);
+  const canSubmit = useMemo(() => title.trim().length > 2 && body.trim().length > 4 && (account.odooPortalMode || pin.trim().length >= 4), [body, pin, title, account.odooPortalMode]);
 
   async function loadPosts() {
     setLoading(true);
@@ -93,17 +93,22 @@ export function ForumPanel({ account, role, onTabChange }: ForumPanelProps) {
     setSubmitting(true);
     setStatus({ tone: 'idle', text: 'Mengirim thread sebagai portal user Odoo...' });
     try {
+      const requestBody: Record<string, unknown> = {
+        semutId: account.semutId,
+        koloniCode,
+        title,
+        body,
+      };
+      if (account.odooPortalMode && account.odooPortalSessionToken) {
+        requestBody.sessionToken = account.odooPortalSessionToken;
+      } else {
+        requestBody.portalLogin = portalLogin;
+        requestBody.pin = pin;
+      }
       const response = await fetch('/api/forum/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          semutId: account.semutId,
-          portalLogin,
-          pin,
-          koloniCode,
-          title,
-          body,
-        }),
+        body: JSON.stringify(requestBody),
       });
       const payload = await response.json().catch(() => null) as ForumPayload | null;
       if (!response.ok || !payload?.ok || !payload.post) {
@@ -157,7 +162,7 @@ export function ForumPanel({ account, role, onTabChange }: ForumPanelProps) {
             <ShieldCheck size={18} />
             <div>
               <strong>Post sebagai portal user</strong>
-              <span>PIN harus sama dengan password portal Odoo untuk {portalLogin}.</span>
+              <span>{account.odooPortalMode ? 'Masuk sebagai portal user Odoo asli.' : 'PIN harus sama dengan password portal Odoo untuk ' + portalLogin + '.'}</span>
             </div>
           </div>
           <label>
@@ -168,10 +173,12 @@ export function ForumPanel({ account, role, onTabChange }: ForumPanelProps) {
             Isi forum
             <textarea value={body} onChange={(event) => setBody(event.target.value)} rows={3} placeholder="Tulis update kerja koloni..." />
           </label>
-          <label>
-            PIN portal Odoo
-            <input value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 8))} inputMode="numeric" type="password" placeholder="PIN portal" />
-          </label>
+          {!account.odooPortalMode && (
+            <label>
+              PIN portal Odoo
+              <input value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 8))} inputMode="numeric" type="password" placeholder="PIN portal" />
+            </label>
+          )}
           <button className="primary-action" type="button" onClick={submitPost} disabled={!canSubmit || submitting}>
             {submitting ? <Loader2 size={17} className="spin-icon" /> : <Send size={17} />}
             Kirim ke Odoo Forum

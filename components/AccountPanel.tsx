@@ -111,6 +111,13 @@ export function AccountPanel({ account, role, onChange, onLogout }: AccountPanel
   }
 
   function resetLocalSession() {
+    if (account.odooPortalMode && account.odooPortalSessionToken) {
+      fetch('/api/odoo/portal-login', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken: account.odooPortalSessionToken }),
+      }).catch(() => {});
+    }
     clearAccount();
     onLogout();
   }
